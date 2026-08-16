@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Proctored Final Exam - Agentic Tech Lab</title>
+    
+    <!-- TensorFlow.js and Object Detection -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"></script>
+
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; color: #333; }
+        .header { text-align: center; background: #2c3e50; color: white; padding: 15px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .container { max-width: 800px; margin: 20px auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0px 4px 10px rgba(0,0,0,0.1); }
+        #ai-status { background: #f39c12; color: white; padding: 5px 15px; border-radius: 5px; font-size: 14px; font-weight: bold; }
+        .report-card { display: none; background: #fff; padding: 20px; margin-bottom: 20px; border-radius: 8px; border-top: 5px solid #3498db; }
+        .report-card h2 { margin-top: 0; color: #2c3e50; text-align: center; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        .report-card p { font-size: 17px; margin: 8px 0; }
+        .log-box { background: #fdf2e9; padding: 10px; border-left: 4px solid #e74c3c; margin-top: 15px; font-size: 14px; }
+        .log-box ul { margin: 5px 0; padding-left: 20px; color: #c0392b; font-weight: bold; }
+        .question h3 { color: #000000; font-weight: 900; font-size: 18px; }
+        .options label { display: block; margin: 10px 0; cursor: pointer; color: #000000; font-weight: bold; font-size: 16px; }
+        .question { margin-bottom: 25px; padding-bottom: 15px; border-bottom: 2px solid #ddd; }
+        #timer { font-size: 20px; font-weight: bold; color: #e74c3c; background: white; padding: 5px 15px; border-radius: 5px; }
+        .btn-submit { background: #27ae60; color: white; border: none; padding: 12px 20px; font-size: 18px; border-radius: 5px; cursor: pointer; width: 100%; margin-top: 20px; font-weight: bold; }
+        .btn-submit:hover { background: #2ecc71; }
+        .explanation { display: none; padding: 10px; margin-top: 10px; border-left: 4px solid; font-size: 15px; border-radius: 4px; color: #333; }
+        #warnings { color: red; font-weight: bold; text-align: center; margin-top: 10px; font-size: 16px; }
+        #video-container { position: fixed; bottom: 10px; right: 10px; width: 220px; height: 165px; background: black; border: 4px solid #e74c3c; border-radius: 8px; overflow: hidden; box-shadow: 0px 4px 15px rgba(0,0,0,0.5); z-index: 1000; }
+        #webcam, #ai-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
+        #ai-canvas { z-index: 1001; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h2>Data Science Final Exam</h2>
+        <div id="ai-status">🤖 Loading AI Model...</div>
+        <div id="timer">60:00</div>
+    </div>
+
+    <div id="warnings">Warnings: 0 / 3 (Auto-submit after 3 strikes)</div>
+
+    <div class="container report-card" id="result-report"></div>
+    <div class="container" id="quiz-container"></div>
+
+    <div id="video-container">
+        <video id="webcam" autoplay playsinline muted></video>
+        <canvas id="ai-canvas"></canvas>
+    </div>
+
+    <script>
+        // Yahan par aap apne baqi 60 MCQs add kar sakte hain
+        const quizData = [
+            { q: "1. Python mein variable define karne ke liye kaunsa syntax sahi hai?", options: ["int x = 5", "x = 5", "variable x = 5", "x : 5"], ans: 1, exp: "Python dynamically typed hai." },
+            { q: "2. Jupyter Notebook mein cell ko run karne ka shortcut kya hai?", options: ["Ctrl + R", "Shift + Enter", "Alt + Run", "Tab + Enter"], ans: 1, exp: "Shift + Enter current cell run karta hai." },
+            { q: "3. Kisi dataset ki average nikalne ko statistics mein kya kehte hain?", options: ["Mode", "Median", "Mean", "Range"], ans: 2, exp: "Mean average ko kehte hain." },
+            { q: "4. Pandas mein CSV file read karne ka function kaunsa hai?", options: ["pd.read_file()", "pd.open_csv()", "pd.read_csv()", "pd.load_csv()"], ans: 2, exp: "read_csv se file load hoti hai." },
+            { q: "5. SQL mein 'WHERE' clause ka kya kaam hai?", options: ["Data sort karna", "Data filter karna", "Columns group karna", "Naya column banana"], ans: 1, exp: "WHERE clause filtering ke liye hai." }
+        ];
+
+        const quizContainer = document.getElementById('quiz-container');
+        let isSubmitted = false; 
+        let warningCount = 0;
+        let lastWarningTime = 0;
+        let warningLogs = []; 
+        let submissionType = "Manual (Student Submitted)";
+
+        function loadQuiz() {
+            quizData.forEach((item, index) => {
+                const questionDiv = document.createElement('div');
+                questionDiv.classList.add('question');
+                questionDiv.innerHTML = `<h3>${item.q}</h3><div class="options">${item.options.map((opt, i) => `<label><input type="radio" name="q${index}" value="${i}"> ${opt}</label>`).join('')}</div><div class="explanation" id="exp-${index}"><strong>Answer:</strong> ${item.options[item.ans]} <br><br><strong>Explanation:</strong> ${item.exp}</div>`;
+                quizContainer.appendChild(questionDiv);
+            });
+            const submitBtn = document.createElement('button');
+            submitBtn.innerText = "Submit Exam"; submitBtn.id = "submit-btn";
+            submitBtn.classList.add('btn-submit'); 
+            submitBtn.onclick = () => submitQuiz("Manual (Student clicked Submit)");
+            quizContainer.appendChild(submitBtn);
+        }
+
+        function submitQuiz(typeOfSubmission) {
+            if (isSubmitted) return;
+            isSubmitted = true;
+            submissionType = typeOfSubmission; 
+            
+            clearInterval(timerInterval); 
+            if(aiInterval) clearInterval(aiInterval);
+
+            let score = 0, wrong = 0, unattempted = 0, total = quizData.length;
+
+            quizData.forEach((item, index) => {
+                const selected = document.querySelector(`input[name="q${index}"]:checked`);
+                const expDiv = document.getElementById(`exp-${index}`);
+                expDiv.style.display = "block"; 
+
+                if (!selected) { unattempted++; expDiv.style.borderLeftColor = "#f39c12"; expDiv.style.backgroundColor = "#fdf2e9"; } 
+                else if (parseInt(selected.value) === item.ans) { score++; expDiv.style.borderLeftColor = "#1abc9c"; expDiv.style.backgroundColor = "#e8f8f5"; } 
+                else { wrong++; expDiv.style.borderLeftColor = "#e74c3c"; expDiv.style.backgroundColor = "#fdedec"; }
+                
+                document.querySelectorAll(`input[name="q${index}"]`).forEach(opt => opt.disabled = true);
+            });
+
+            document.getElementById('submit-btn').style.display = "none";
+            let percentage = ((score / total) * 100).toFixed(2);
+            let status = percentage >= 50 ? "<span style='color:#27ae60;'><b>PASSED</b></span>" : "<span style='color:#c0392b;'><b>FAILED</b></span>";
+            
+            let logHTML = warningLogs.length > 0 ? `<ul>${warningLogs.map(log => `<li>${log}</li>`).join('')}</ul>` : `<span style="color:#27ae60; font-weight:bold;">No cheating detected. Excellent!</span>`;
+
+            const reportDiv = document.getElementById('result-report');
+            reportDiv.style.display = "block";
+            reportDiv.innerHTML = `<h2>📊 Detailed Final Report</h2><div style="display:flex; justify-content:space-between; flex-wrap:wrap;"><div style="flex:1; min-width: 250px;"><p><strong>Total Questions:</strong> ${total}</p><p style="color: #27ae60;"><strong>✅ Correct:</strong> ${score}</p><p style="color: #e74c3c;"><strong>❌ Wrong:</strong> ${wrong}</p><p style="color: #f39c12;"><strong>⚠️ Unattempted:</strong> ${unattempted}</p></div><div style="flex:1; min-width: 250px; text-align:right;"><p><strong>Score:</strong> ${percentage}%</p><p><strong>Result:</strong> ${status}</p><p><strong>Submitted By:</strong> <u>${submissionType}</u></p></div></div><div class="log-box"><strong>⚠️ Security Strikes:</strong><br>${logHTML}</div>`;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            
+            if (mediaStream) mediaStream.getTracks().forEach(track => track.stop());
+            const canvas = document.getElementById('ai-canvas');
+            canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        let mediaStream = null; let aiModel = null; let aiInterval;
+
+        function triggerWarning(reason) {
+            if (isSubmitted) return;
+            let now = Date.now();
+            if (now - lastWarningTime < 4000) return; 
+            lastWarningTime = now;
+            warningCount++;
+            let timestamp = new Date().toLocaleTimeString();
+            warningLogs.push(`[${timestamp}] Strike ${warningCount}: ${reason}`);
+            document.getElementById('warnings').innerText = `Warnings: ${warningCount} / 3 (Auto-submit after 3 strikes)`;
+            if (warningCount >= 3) { alert(`🚨 Maximum strikes reached! Reason: ${reason}. Exam is Auto-Submitting.`); submitQuiz("System Auto-Submit (Cheating Limit Reached)"); } 
+            else { alert(`WARNING ${warningCount}: ${reason}`); }
+        }
+
+        async function startSecurityFeatures() {
+            try {
+                mediaStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+                const videoElement = document.getElementById('webcam');
+                videoElement.srcObject = mediaStream;
+                aiModel = await cocoSsd.load();
+                document.getElementById('ai-status').innerText = "🟢 Visual AI Active";
+                document.getElementById('ai-status').style.background = "#27ae60";
+
+                const canvas = document.getElementById('ai-canvas');
+                const ctx = canvas.getContext('2d');
+
+                aiInterval = setInterval(async () => {
+                    if (isSubmitted || videoElement.readyState !== 4) return;
+                    canvas.width = videoElement.videoWidth; canvas.height = videoElement.videoHeight;
+                    const predictions = await aiModel.detect(videoElement);
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                    let persons = 0; let phoneDetected = false;
+                    predictions.forEach(pred => {
+                        ctx.beginPath(); ctx.rect(...pred.bbox); ctx.lineWidth = 4;
+                        if (pred.class === 'cell phone') { ctx.strokeStyle = '#e74c3c'; ctx.fillStyle = '#e74c3c'; phoneDetected = true; } 
+                        else if (pred.class === 'person') { ctx.strokeStyle = '#2ecc71'; ctx.fillStyle = '#2ecc71'; persons++; }
+                        ctx.stroke(); ctx.font = 'bold 16px Arial';
+                        ctx.fillText(`${pred.class}`, pred.bbox[0], pred.bbox[1] > 20 ? pred.bbox[1] - 5 : 20);
+                    });
+
+                    if (phoneDetected) { triggerWarning("Mobile Phone detected by AI in camera view."); } 
+                    else if (persons > 1) { triggerWarning("Multiple persons detected in camera frame."); } 
+                    else if (persons === 0) { triggerWarning("Candidate missing from the camera frame."); }
+                }, 1000); 
+            } catch (err) { console.log("Camera access denied."); }
+        }
+
+        document.addEventListener("visibilitychange", () => { if (document.hidden) triggerWarning("Candidate switched the browser tab."); });
+        window.addEventListener("blur", () => { triggerWarning("Focus Lost: Candidate looked away or clicked on another screen."); });
+
+        let timeLeft = 60 * 60; let timerInterval;
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                if (timeLeft <= 0) { clearInterval(timerInterval); alert("⏰ Time is up!"); submitQuiz("System Auto-Submit (Time Limit)"); }
+                timeLeft--; let m = Math.floor(timeLeft / 60); let s = timeLeft % 60;
+                document.getElementById('timer').innerText = `${m}:${s < 10 ? '0' : ''}${s}`;
+            }, 1000);
+        }
+
+        setTimeout(() => { loadQuiz(); startTimer(); startSecurityFeatures(); }, 500);
+    </script>
+</body>
+</html>
