@@ -53,12 +53,78 @@
     <script>
         // Yahan par aap apne baqi 60 MCQs add kar sakte hain
         const quizData = [
-            { q: "1. Python mein variable define karne ke liye kaunsa syntax sahi hai?", options: ["int x = 5", "x = 5", "variable x = 5", "x : 5"], ans: 1, exp: "Python dynamically typed hai." },
-            { q: "2. Jupyter Notebook mein cell ko run karne ka shortcut kya hai?", options: ["Ctrl + R", "Shift + Enter", "Alt + Run", "Tab + Enter"], ans: 1, exp: "Shift + Enter current cell run karta hai." },
-            { q: "3. Kisi dataset ki average nikalne ko statistics mein kya kehte hain?", options: ["Mode", "Median", "Mean", "Range"], ans: 2, exp: "Mean average ko kehte hain." },
-            { q: "4. Pandas mein CSV file read karne ka function kaunsa hai?", options: ["pd.read_file()", "pd.open_csv()", "pd.read_csv()", "pd.load_csv()"], ans: 2, exp: "read_csv se file load hoti hai." },
-            { q: "5. SQL mein 'WHERE' clause ka kya kaam hai?", options: ["Data sort karna", "Data filter karna", "Columns group karna", "Naya column banana"], ans: 1, exp: "WHERE clause filtering ke liye hai." }
-        ];
+    // --- Week 1: Python Fundamentals & Environment Setup ---
+    { q: "1. Python mein variable define karne ke liye kaunsa syntax sahi hai?", options: ["int x = 5", "x = 5", "variable x = 5", "x : 5"], ans: 1, exp: "Python ek dynamically typed language hai, datatype explicitly likhne ki zaroorat nahi." },
+    { q: "2. Jupyter Notebook mein current cell ko run karne ka shortcut kya hai?", options: ["Ctrl + R", "Shift + Enter", "Alt + Run", "Tab + Enter"], ans: 1, exp: "Shift + Enter cell run karta hai aur focus aglay cell par shift kar deta hai." },
+    { q: "3. Git mein nayi repository initialize karne ki command kya hai?", options: ["git start", "git init", "git new", "git repo"], ans: 1, exp: "git init kisi bhi folder ko local git repository bana deta hai." },
+    { q: "4. Python mein 'for' loop ka asal maqsad kya hai?", options: ["Condition check karna", "Error handle karna", "Sequence par iterate karna", "Variable delete karna"], ans: 2, exp: "For loop lists, tuples ya strings par step-by-step processing karta hai." },
+    { q: "5. Google Colab Data Science mein kyu mashhoor hai?", options: ["Yeh offline chalta hai", "Free GPU/TPU access deta hai", "Sirf Python 2 chalata hai", "Isme coding mushkil hai"], ans: 1, exp: "Colab cloud-based hai aur heavy models train karne ke liye free GPU access deta hai." },
+    { q: "6. Python mein Lambda function kya hota hai?", options: ["Bada function", "Anonymous one-liner function", "Built-in module", "Error handling"], ans: 1, exp: "Lambda functions chote, bina naam ke functions hote hain." },
+    { q: "7. GitHub ka main maqsad kya hai?", options: ["Social media for coders", "Code version control aur collaboration", "Video hosting", "Database management"], ans: 1, exp: "GitHub source code ko manage karne aur teams ke sath collaborate karne ka platform hai." },
+    { q: "8. Python list mein naya element add karne ke liye konsa method use hota hai?", options: ["list.add()", "list.insert_end()", "list.append()", "list.push()"], ans: 2, exp: "append() method list ke aakhir mein ek naya item add karta hai." },
+    { q: "9. Dictionary mein data kis format mein store hota hai?", options: ["Rows and Columns", "Key-Value pairs", "Index based", "Continuous memory"], ans: 1, exp: "Dictionaries curly braces {} use karti hain aur data key:value format mein rakhti hain." },
+    { q: "10. Git mein 'merge conflict' kab aata hai?", options: ["Internet band hone par", "Jab do log same file ki same line change karein", "Repo delete hone par", "Commit push karne par"], ans: 1, exp: "Git confuse ho jata hai ke kiski changes rakhni hain." },
+
+    // --- Week 2: Mathematics & Statistics for Data Science ---
+    { q: "11. Kisi dataset ki average nikalne ko kya kehte hain?", options: ["Mode", "Median", "Mean", "Range"], ans: 2, exp: "Mean saari values ko add karke total count se divide karne ko kehte hain." },
+    { q: "12. Outliers (extreme values) ki mojoodgi mein konsi metric sab se behtar hai?", options: ["Mean", "Median", "Mode", "Variance"], ans: 1, exp: "Outliers mean ko affect karte hain, jabke median (middle value) stable rehti hai." },
+    { q: "13. Jo value dataset mein sab se zyada baar aaye, use kya kehte hain?", options: ["Mean", "Median", "Mode", "Standard Deviation"], ans: 2, exp: "Mode sab se zyada frequent value hoti hai." },
+    { q: "14. Standard Deviation kya measure karta hai?", options: ["Data ki average", "Data ka spread mean ke ird-gird", "Maximum value", "Total sum"], ans: 1, exp: "Yeh batata hai ke data points mean se kitne door hain." },
+    { q: "15. Agar do variables ek sath increase hon, toh unki correlation kya hogi?", options: ["Negative", "Zero", "Positive", "Neutral"], ans: 2, exp: "Positive correlation ka matlab hai dono ek hi direction mein ja rahe hain." },
+    { q: "16. Ek fair coin ko toss karne par 'Heads' aane ki probability kya hai?", options: ["1.0", "0.5", "0.25", "0.0"], ans: 1, exp: "Total 2 outcomes hain, so 1/2 = 0.5." },
+    { q: "17. Covariance aur Correlation mein main farq kya hai?", options: ["Dono same hain", "Covariance limit mein hoti hai", "Correlation standardized hoti hai (-1 to 1)", "Covariance hamesha positive hoti hai"], ans: 2, exp: "Correlation standardized hone ki wajah se compare karna asaan hoti hai." },
+    { q: "18. Normal Distribution (Bell Curve) mein ~68% data kahan hota hai?", options: ["1 Standard Deviation mein", "2 Standard Deviations mein", "3 Standard Deviations mein", "Mean ke bahar"], ans: 0, exp: "Empirical rule ke mutabiq 68% data 1 std dev ke andar hota hai." },
+    { q: "19. Variance ki calculation mein hum differences ko square kyu karte hain?", options: ["Calculation asaan karne ke liye", "Negative values ko positive karne ke liye", "Outliers chhupane ke liye", "Size kam karne ke liye"], ans: 1, exp: "Agar square na karein, toh positive aur negative cancel ho kar zero ho jayenge." },
+    { q: "20. Descriptive statistics ka asal maqsad kya hai?", options: ["Future predict karna", "Past data ko summarize karna", "ML model train karna", "Data generate karna"], ans: 1, exp: "Yeh mojooda data ki characteristics ko describe karti hai." },
+
+    // --- Week 3: Data Handling & Manipulation ---
+    { q: "21. NumPy library mainly kis cheez ke liye use hoti hai?", options: ["Web scraping", "Numerical computing aur arrays", "Database management", "Frontend design"], ans: 1, exp: "NumPy high-performance multi-dimensional arrays ke liye hai." },
+    { q: "22. Pandas mein CSV file read karne ka function kaunsa hai?", options: ["pd.read_file()", "pd.open_csv()", "pd.read_csv()", "pd.load_csv()"], ans: 2, exp: "read_csv() standard function hai CSV load karne ka." },
+    { q: "23. Dataframe ki rows aur columns ki tadad dekhne ke liye konsa attribute use hota hai?", options: ["df.size()", "df.shape", "df.length", "df.count"], ans: 1, exp: "df.shape ek tuple (rows, columns) return karta hai." },
+    { q: "24. Pandas mein missing values ko handle/fill karne ke liye kya use hota hai?", options: ["df.dropna()", "df.fill_null()", "df.fillna()", "df.replace_na()"], ans: 2, exp: "fillna() se aap NaN values ko kisi aur value se replace kar sakte hain." },
+    { q: "25. NumPy mein 'Broadcasting' ka kya matlab hai?", options: ["Internet par bhejna", "Alag shapes ke arrays par math operations", "List mein convert karna", "Data delete karna"], ans: 1, exp: "Yeh chotay arrays ko stretch karta hai taake operations ho sakein." },
+    { q: "26. Feature Engineering ka kya maqsad hai?", options: ["Naye features banana taake ML model acha perform kare", "Data delete karna", "Server setup karna", "Code format karna"], ans: 0, exp: "Raw data se model ke liye zyada useful information extract karna." },
+    { q: "27. Pandas DataFrame mein data ko kisi category par group karne ke liye kya use hota hai?", options: ["df.group()", "df.groupby()", "df.aggregate()", "df.cluster()"], ans: 1, exp: "df.groupby() SQL ke GROUP BY jesa kaam karta hai." },
+    { q: "28. Categorical variables (jaise 'Red', 'Green') ko ML ke liye numbers mein badalne ki technique?", options: ["Normalization", "Standardization", "One-Hot Encoding", "PCA"], ans: 2, exp: "One-Hot Encoding har category ka naya binary column bana deti hai." },
+    { q: "29. NumPy Python lists se fast kyu hai?", options: ["C language aur memory contiguous hoti hai (Vectorization)", "Cloud par chalti hai", "Datatypes nahi hote", "List zyada fast hai"], ans: 0, exp: "NumPy C-level vectorized operations use karti hai jo loops se fast hain." },
+    { q: "30. Data Preprocessing ka pehla qadam amoomi tor par kya hota hai?", options: ["Model training", "Data visualization", "Data Cleaning", "Deployment"], ans: 2, exp: "Data cleaning (missing values, duplicates remove karna) sab se pehla step hota hai." },
+
+    // --- Week 4: Data Visualization & Storytelling ---
+    { q: "31. Python mein basic plotting ki sab se common library kaunsi hai?", options: ["Keras", "Matplotlib", "TensorFlow", "Scikit-learn"], ans: 1, exp: "Matplotlib Python ki fundamental plotting library hai." },
+    { q: "32. Do numerical variables ke darmiyan relationship dekhne ke liye konsa plot best hai?", options: ["Pie Chart", "Bar Chart", "Scatter Plot", "Histogram"], ans: 2, exp: "Scatter plot x aur y axis par data points ka trend dikhata hai." },
+    { q: "33. Seaborn library kis library par base karti hai?", options: ["Pandas", "Matplotlib", "Plotly", "Bokeh"], ans: 1, exp: "Seaborn Matplotlib ke upar ek high-level aur khubsoorat interface hai." },
+    { q: "34. Histogram ka primary use kya hai?", options: ["Categories compare karna", "Ek numerical variable ki distribution/frequency dekhna", "3D plotting", "Time series"], ans: 1, exp: "Histogram bins bana kar dikhata hai ke data kis range mein kitna hai." },
+    { q: "35. EDA (Exploratory Data Analysis) ka main maqsad kya hai?", options: ["Model deploy karna", "Data ke patterns aur anomalies ko samajhna", "Database banana", "Client ko report bhejna"], ans: 1, exp: "EDA raw data ki kahani aur structure samajhne ke liye hota hai." },
+    { q: "36. Correlation matrix visualize karne ke liye Seaborn ka konsa plot use hota hai?", options: ["sns.pairplot", "sns.heatmap", "sns.boxplot", "sns.violinplot"], ans: 1, exp: "Heatmap colors ke zariye matrix ki values show karta hai." },
+    { q: "37. Business Dashboard ka sab se eham function kya hai?", options: ["Complex code dikhana", "KPIs ko visual format mein track karna", "Data encrypt karna", "Email bhejha"], ans: 1, exp: "Dashboards business health ek nazar mein dekhne ke liye hote hain." },
+    { q: "38. Matplotlib mein subplots (grids) banane ke liye kya use hota hai?", options: ["plt.multiplot", "plt.subplots", "plt.grid", "plt.figure"], ans: 1, exp: "plt.subplots() se rows aur columns define kar ke multiple plots banaye jate hain." },
+    { q: "39. Outliers ko detect karne ke liye konsa visual tool sab se behtar hai?", options: ["Line chart", "Boxplot", "Pie chart", "Bar chart"], ans: 1, exp: "Boxplot data ke quartiles aur extreme outliers ko wazeh karta hai." },
+    { q: "40. 'Business Storytelling with Data' ka asal maqsad kya hai?", options: ["Zyada colors use karna", "Actionable insights aasaan zaban mein dena", "Sirf math dikhana", "3D charts banana"], ans: 1, exp: "Data se aisi narrative banana jo non-technical logon ko decision lene mein madad de." },
+
+    // --- Week 5: SQL & Database Fundamentals ---
+    { q: "41. SQL ka full form kya hai?", options: ["Simple Query Language", "Structured Query Language", "Standard Question Language", "Sequential Query Language"], ans: 1, exp: "SQL relational databases ko manage karne ki zaban hai." },
+    { q: "42. Kisi table se sab columns ka data nikalne ke liye konsi query use hogi?", options: ["SELECT ALL", "SELECT *", "SHOW *", "GET ALL"], ans: 1, exp: "Astrix (*) wildcard ka matlab 'all columns' hota hai." },
+    { q: "43. Relational Database mein 'Primary Key' ki khasiyat kya hai?", options: ["Hamesha text hoti hai", "Row ko uniquely identify karti hai aur NULL nahi hoti", "Sirf numbers hote hain", "Duplicate ho sakti hai"], ans: 1, exp: "Primary Key har record ko unique rakhti hai." },
+    { q: "44. Jo records dono tables mein match karte hon, unhe nikalne ke liye konsa JOIN use hoga?", options: ["LEFT JOIN", "RIGHT JOIN", "FULL OUTER JOIN", "INNER JOIN"], ans: 3, exp: "INNER JOIN sirf intersecting records return karta hai." },
+    { q: "45. SQL mein 'WHERE' clause ka kya kaam hai?", options: ["Data sort karna", "Condition ki base par data filter karna", "Columns group karna", "Naya column banana"], ans: 1, exp: "WHERE database se data laane se pehle condition lagata hai." },
+    { q: "46. In mein se konsa SQL ka Aggregate Function nahi hai?", options: ["SUM()", "COUNT()", "LENGTH()", "AVG()"], ans: 2, exp: "LENGTH() ek string function hai, aggregate function nahi." },
+    { q: "47. Python ko SQLite se connect karne ke liye konsi built-in library use hoti hai?", options: ["sqlite3", "pyodbc", "sqlalchemy", "psycopg2"], ans: 0, exp: "sqlite3 Python ki standard library ka hissa hai." },
+    { q: "48. WHERE aur HAVING clause mein main difference kya hai?", options: ["Dono same hain", "WHERE grouping se pehle, HAVING grouping (aggregates) ke baad filter karta hai", "HAVING grouping se pehle lagta hai", "WHERE sirf text par lagta hai"], ans: 1, exp: "Aggregate functions HAVING ke sath use hote hain, WHERE ke sath nahi." },
+    { q: "49. SQL mein result ko descending order mein sort karne ke liye kya likhte hain?", options: ["ORDER BY col_name DESC", "SORT BY col_name DOWN", "ORDER DESC col_name", "GROUP BY col_name DESC"], ans: 0, exp: "ORDER BY keyword ke sath DESC lagaya jata hai." },
+    { q: "50. Foreign Key ka maqsad kya hota hai?", options: ["Table delete karna", "Do tables ke darmiyan relationship banana", "Duplicate values rokna", "Data encrypt karna"], ans: 1, exp: "Yeh ek table ko dusre table ki Primary Key se link karti hai." },
+
+    // --- Week 6: Machine Learning Fundamentals ---
+    { q: "51. Agar hamare paas output label (target) majood ho, toh yeh konsi learning hai?", options: ["Unsupervised Learning", "Supervised Learning", "Reinforcement Learning", "Semi-supervised"], ans: 1, exp: "Supervised learning mein model labeled data par train hota hai." },
+    { q: "52. Ghar ki qeemat (continuous value) predict karna konsi problem hai?", options: ["Classification", "Clustering", "Regression", "Dimensionality Reduction"], ans: 2, exp: "Continuous numbers predict karna Regression kahlata hai." },
+    { q: "53. Email Spam ya Not Spam predict karna konsi problem hai?", options: ["Classification", "Regression", "Clustering", "Association"], ans: 0, exp: "Categories (Spam/Not Spam) predict karna Classification hai." },
+    { q: "54. ML model ko evaluate karne ke liye data ko kis tarah divide kiya jata hai?", options: ["100% Training", "Train/Test split", "Sirf Test", "Delete kar ke naya data lana"], ans: 1, exp: "Model ko Train set par sikhaya jata hai aur Test set par evaluate kiya jata hai." },
+    { q: "55. Overfitting kab hoti hai?", options: ["Jab model training aur test dono par bura ho", "Jab model training data rat le aur naye data par fail ho jaye", "Jab model bilkul train na ho", "Jab data bohat kam ho"], ans: 1, exp: "Overfitting ka matlab hai model ne noise bhi yaad kar liya hai aur generalize nahi kar paa raha." },
+    { q: "56. In mein se konsa Classification metric nahi hai?", options: ["Accuracy", "F1-Score", "Mean Squared Error (MSE)", "Precision"], ans: 2, exp: "MSE regression models ki metric hai." },
+    { q: "57. Scikit-learn mein model train karne ke liye konsa method call kiya jata hai?", options: ["model.train()", "model.fit()", "model.predict()", "model.evaluate()"], ans: 1, exp: "fit(X, y) method scikit-learn mein standard training function hai." },
+    { q: "58. K-Means konsi Machine Learning ka algorithm hai?", options: ["Supervised Regression", "Supervised Classification", "Unsupervised Clustering", "Reinforcement"], ans: 2, exp: "K-Means unlabeled data ki grouping (clustering) karta hai." },
+    { q: "59. Model unseen (test) data par kesa perform karega, usay predict karne ke liye kya use karte hain?", options: ["model.fit()", "model.train()", "model.predict()", "model.score()"], ans: 2, exp: "predict() method naye data par predictions generate karta hai." },
+    { q: "60. Confusion Matrix kis cheez ki performance dekhne ke liye banaya jata hai?", options: ["Regression Models", "Clustering Algorithms", "Classification Models", "Data Preprocessing"], ans: 2, exp: "Yeh True Positives, False Positives waghera dikhata hai classification ke liye." }
+];
 
         const quizContainer = document.getElementById('quiz-container');
         let isSubmitted = false; 
