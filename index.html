@@ -15,7 +15,7 @@
         .container { max-width: 800px; margin: 20px auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0px 4px 15px rgba(0,0,0,0.1); }
         
         #instructions-screen h2 { color: #2c3e50; text-align: center; font-size: 24px; margin-top: 0; border-bottom: 2px solid #ddd; padding-bottom: 10px; }
-        .info-grid { display: flex; justify-content: space-between; background: #eaf2f8; padding: 15px; border-radius: 8px; margin: 20px 0; font-weight: bold; font-size: 16px; color: #2980b9; }
+        .info-grid { display: flex; justify-content: space-between; background: #eaf2f8; padding: 15px; border-radius: 8px; margin: 20px 0; font-weight: bold; font-size: 16px; color: #2980b9; flex-wrap: wrap; gap: 10px; }
         .rules-list { background: #fdf2e9; border-left: 5px solid #e74c3c; padding: 15px 15px 15px 35px; border-radius: 5px; font-size: 16px; margin-bottom: 25px; }
         .rules-list li { margin-bottom: 10px; }
         .btn-start { background: #2980b9; color: white; border: none; padding: 15px 25px; font-size: 18px; border-radius: 5px; cursor: pointer; width: 100%; font-weight: bold; box-shadow: 0px 4px 6px rgba(0,0,0,0.1); transition: 0.3s; }
@@ -37,7 +37,7 @@
         .explanation { display: none; padding: 10px; margin-top: 10px; border-left: 4px solid; font-size: 15px; border-radius: 4px; color: #333; }
         #warnings { color: #e67e22; font-weight: bold; text-align: center; margin-top: 10px; margin-bottom: 20px; font-size: 16px; }
         
-        #video-container { display: none; position: fixed; bottom: 10px; right: 10px; width: 220px; height: 165px; background: black; border: 4px solid #e74c3c; border-radius: 8px; overflow: hidden; box-shadow: 0px 4px 15px rgba(0,0,0,0.5); z-index: 1000; }
+        #video-container { display: none; position: fixed; bottom: 10px; right: 10px; width: 160px; height: 120px; background: black; border: 3px solid #27ae60; border-radius: 8px; overflow: hidden; box-shadow: 0px 4px 15px rgba(0,0,0,0.5); z-index: 1000; }
         #webcam, #ai-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
         #ai-canvas { z-index: 1001; }
     </style>
@@ -56,8 +56,8 @@
 
         <h3 style="color: #2c3e50;">ℹ️ Exam Instructions & Monitoring:</h3>
         <ul class="rules-list">
-            <li><strong>AI Monitoring:</strong> Camera activity, tab switches, and focus are monitored in the background for reporting purposes.</li>
-            <li><strong>No Restrictions:</strong> There are no auto-submits or forced lockouts due to warnings; complete your exam freely.</li>
+            <li><strong>AI Monitoring:</strong> Camera activity and focus are monitored in the background for reporting purposes.</li>
+            <li><strong>No Restrictions:</strong> There are no auto-submits or forced lockouts; complete your exam freely.</li>
             <li><strong>Submission:</strong> Click "Submit Exam" at the bottom when you finish.</li>
         </ul>
 
@@ -75,8 +75,8 @@
     <!-- QUIZ SCREEN -->
     <div id="quiz-main-section">
         <div class="header">
-            <h2>Physics Chapters 1-4 Exam</h2>
-            <div id="ai-status">🤖 Loading AI Model...</div>
+            <h2>Physics Exam</h2>
+            <div id="ai-status">🤖 Ready</div>
             <div id="timer">60:00</div>
         </div>
 
@@ -102,7 +102,6 @@
             }
         };
 
-        // 60 Physics MCQs (Chapters 1 to 4 / Motion, Force, Work, Energy, Measurements & Vectors)
         const quizData = [
             { q: "1. What does the slope or gradient of a displacement-time graph represent?", options: ["Acceleration", "Velocity", "Distance", "Force"], ans: 1, exp: "The slope of a displacement-time graph gives the velocity." },
             { q: "2. Which of the following graphs can never be negative?", options: ["Displacement-time graph", "Velocity-time graph", "Distance-time graph", "Acceleration-time graph"], ans: 2, exp: "Distance is a scalar quantity and can never be negative." },
@@ -160,4 +159,4 @@
             { q: "52. What is the SI unit of angular acceleration?", options: ["rad/s", "rad/s²", "m/s²", "N·m"], ans: 1, exp: "Angular acceleration is measured in rad/s²." },
             { q: "53. What is the relationship between linear velocity (v) and angular velocity (ω)?", options: ["v = ω / r", "v = rω", "v = r / ω", "v = ω²r"], ans: 1, exp: "The linear speed is related to angular speed via v = rω." },
             { q: "54. Which formula correctly represents centripetal force?", options: ["F = mv", "F = mv² / r", "F = mωr²", "F = m²v / r"], ans: 1, exp: "Centripetal force is given by F = mv²/r." },
-            { q: "55. The moment of inertia (I) of a point mass m at 
+            { q: "55. The moment of inertia (I) of a point mass m at distance r is given by:", options: ["mr", "mr²", "m²r", "1/2 mr²"], ans: 1, exp: "Moment of inertia for a point mass is defined a
