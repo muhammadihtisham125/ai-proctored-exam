@@ -3,7 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Physics Exam - Agentic Tech Lab</title>
+    <title>AI Proctored Final Exam - Agentic Tech Lab</title>
+    
+    <!-- TensorFlow.js and Object Detection -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"></script>
 
     <style>
         body { font-family: Arial, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; color: #333; }
@@ -12,15 +16,18 @@
         
         #instructions-screen h2 { color: #2c3e50; text-align: center; font-size: 24px; margin-top: 0; border-bottom: 2px solid #ddd; padding-bottom: 10px; }
         .info-grid { display: flex; justify-content: space-between; background: #eaf2f8; padding: 15px; border-radius: 8px; margin: 20px 0; font-weight: bold; font-size: 16px; color: #2980b9; }
-        .rules-list { background: #e8f8f5; border-left: 5px solid #27ae60; padding: 15px 15px 15px 35px; border-radius: 5px; font-size: 16px; margin-bottom: 25px; }
+        .rules-list { background: #fdf2e9; border-left: 5px solid #e74c3c; padding: 15px 15px 15px 35px; border-radius: 5px; font-size: 16px; margin-bottom: 25px; }
         .rules-list li { margin-bottom: 10px; }
         .btn-start { background: #2980b9; color: white; border: none; padding: 15px 25px; font-size: 18px; border-radius: 5px; cursor: pointer; width: 100%; font-weight: bold; box-shadow: 0px 4px 6px rgba(0,0,0,0.1); transition: 0.3s; }
         .btn-start:hover { background: #2471a3; }
 
         #quiz-main-section { display: none; }
+        #ai-status { background: #f39c12; color: white; padding: 5px 15px; border-radius: 5px; font-size: 14px; font-weight: bold; }
         .report-card { display: none; background: #fff; padding: 20px; margin-bottom: 20px; border-radius: 8px; border-top: 5px solid #3498db; }
         .report-card h2 { margin-top: 0; color: #2c3e50; text-align: center; border-bottom: 2px solid #eee; padding-bottom: 10px; }
         .report-card p { font-size: 17px; margin: 8px 0; }
+        .log-box { background: #fdf2e9; padding: 10px; border-left: 4px solid #e74c3c; margin-top: 15px; font-size: 14px; }
+        .log-box ul { margin: 5px 0; padding-left: 20px; color: #c0392b; font-weight: bold; }
         .question h3 { color: #000000; font-weight: 900; font-size: 18px; margin-top: 0; }
         .options label { display: block; margin: 10px 0; cursor: pointer; color: #000000; font-weight: bold; font-size: 16px; }
         .question { margin-bottom: 25px; padding-bottom: 15px; border-bottom: 2px solid #ddd; }
@@ -28,9 +35,11 @@
         .btn-submit { background: #27ae60; color: white; border: none; padding: 12px 20px; font-size: 18px; border-radius: 5px; cursor: pointer; width: 100%; margin-top: 20px; font-weight: bold; }
         .btn-submit:hover { background: #2ecc71; }
         .explanation { display: none; padding: 10px; margin-top: 10px; border-left: 4px solid; font-size: 15px; border-radius: 4px; color: #333; }
+        #warnings { color: #e67e22; font-weight: bold; text-align: center; margin-top: 10px; margin-bottom: 20px; font-size: 16px; }
         
-        #video-container { display: none; position: fixed; bottom: 10px; right: 10px; width: 220px; height: 165px; background: black; border: 4px solid #27ae60; border-radius: 8px; overflow: hidden; box-shadow: 0px 4px 15px rgba(0,0,0,0.5); z-index: 1000; }
-        #webcam { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
+        #video-container { display: none; position: fixed; bottom: 10px; right: 10px; width: 220px; height: 165px; background: black; border: 4px solid #e74c3c; border-radius: 8px; overflow: hidden; box-shadow: 0px 4px 15px rgba(0,0,0,0.5); z-index: 1000; }
+        #webcam, #ai-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
+        #ai-canvas { z-index: 1001; }
     </style>
 </head>
 <body>
@@ -44,29 +53,32 @@
             <div>🏆 Passing Score: 50%</div>
         </div>
 
-        <h3 style="color: #27ae60;">ℹ️ Exam Guidelines & Instructions:</h3>
+        <h3 style="color: #2c3e50;">ℹ️ Exam Instructions & Monitoring:</h3>
         <ul class="rules-list">
-            <li><strong>Camera Proctoring:</strong> Your camera feed will remain active in the corner during the exam.</li>
-            <li><strong>Time Limit:</strong> Complete all questions within 60 minutes.</li>
-            <li><strong>Submission:</strong> Click the "Submit Exam" button at the bottom once you are done.</li>
+            <li><strong>AI Monitoring:</strong> Camera activity, tab switches, and focus are monitored in the background for reporting purposes.</li>
+            <li><strong>No Restrictions:</strong> There are no auto-submits or forced lockouts; complete your exam freely.</li>
+            <li><strong>Submission:</strong> Click "Submit Exam" at the bottom when you finish.</li>
         </ul>
 
         <div style="margin: 20px 0; background: #eaf2f8; padding: 15px; border-radius: 8px;">
             <label><strong>Student Name:</strong></label><br>
-            <input type="text" id="student_name" placeholder="Enter your full name" style="width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 5px; border: 1px solid #ccc; box-sizing: border-box;">
+            <input type="text" id="student_name" placeholder="Enter your full name" style="width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 5px; border: 1px solid #ccc; box-sizing: border-box;" required>
             
             <label><strong>Roll Number / ID:</strong></label><br>
-            <input type="text" id="roll_number" placeholder="Enter your Roll No (e.g. PHY-001)" style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ccc; box-sizing: border-box;">
+            <input type="text" id="roll_number" placeholder="Enter your Roll No (e.g. PHY-001)" style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ccc; box-sizing: border-box;" required>
         </div>
 
-        <button class="btn-start" onclick="startExam()">Start Exam</button>
+        <button class="btn-start" onclick="startExam()">I Understand & Start Exam</button>
     </div>
 
     <div id="quiz-main-section">
         <div class="header">
             <h2>Physics Chapters 1-4 Exam</h2>
+            <div id="ai-status">🤖 Loading AI Model...</div>
             <div id="timer">60:00</div>
         </div>
+
+        <div id="warnings">Activity Logs Recorded: 0</div>
 
         <div class="container report-card" id="result-report"></div>
         <div class="container" id="quiz-container"></div>
@@ -74,14 +86,15 @@
 
     <div id="video-container">
         <video id="webcam" autoplay playsinline muted></video>
+        <canvas id="ai-canvas"></canvas>
     </div>
 
     <script>
         window.onload = () => {
             if (localStorage.getItem("exam_submitted") === "true") {
                 document.getElementById('instructions-screen').innerHTML = `
-                    <h2 style="color: #27ae60; border:none;">✅ Exam Already Completed!</h2>
-                    <p style="text-align:center; font-size: 18px; font-weight:bold;">You have already submitted this exam.</p>
+                    <h2 style="color: #2c3e50; border:none;">🚫 Exam Already Completed!</h2>
+                    <p style="text-align:center; font-size: 18px; font-weight:bold;">You have already submitted this exam on this browser.</p>
                 `;
             }
         };
@@ -108,61 +121,40 @@
             { q: "19. Newton's laws of motion hold true strictly in:", options: ["Non-inertial frames", "Inertial frames only", "Accelerated reference frames", "All reference frames"], ans: 1, exp: "Newton's laws are valid only within inertial frames of reference." },
             { q: "20. When an object falls freely under gravity, its acceleration is:", options: ["Zero", "Uniform/Constant", "Variable", "Infinite"], ans: 1, exp: "Free-fall motion exhibits a uniform acceleration equal to g." },
 
-            { q: "21. When the angle between force and displacement is acute (θ < 90°), the work done is:", options: ["Negative", "Zero", "Positive", "Undefined"], ans: 2, exp: "Work done is positive when force aids displacement." },
-            { q: "22. If force and displacement vectors are perpendicular (θ = 90°), the work done is:", options: ["Maximum", "Positive", "Zero", "Negative"], ans: 2, exp: "Since cos(90°) = 0, work done is zero." },
+            { q: "21. When the angle between force and displacement is acute (θ < 90°), the work done is:", options: ["Negative", "Zero", "Positive", "Undefined"], ans: 2, exp: "Work done is positive when force aids displacement (acute angle)." },
+            { q: "22. If the force and displacement vectors are perpendicular to each other (θ = 90°), the work done is:", options: ["Maximum", "Positive", "Zero", "Negative"], ans: 2, exp: "Since cos(90°) = 0, the work done is zero." },
             { q: "23. Frictional force is classified as which type of force?", options: ["Conservative", "Non-conservative", "Gravitational", "Central"], ans: 1, exp: "Friction is a non-conservative dissipative force." },
             { q: "24. The work done along a closed path in a conservative field is always:", options: ["Maximum", "Zero", "Positive", "Negative"], ans: 1, exp: "Net work done in a closed loop for conservative fields is zero." },
             { q: "25. The dot product of force and velocity (F · v) defines:", options: ["Work", "Energy", "Power", "Momentum"], ans: 2, exp: "Power is equal to the scalar product of force and velocity." },
             { q: "26. One horsepower (HP) is equivalent to:", options: ["500 Watts", "746 Watts", "1000 Watts", "550 Watts"], ans: 1, exp: "1 mechanical horsepower equals 746 Watts." },
-            { q: "27. One kilowatt-hour (1 kWh) is equal to:", options: ["1.0 MJ", "3.6 Mega Joules", "7.46 MJ", "100 MJ"], ans: 1, exp: "1 kWh = 3.6 × 10^6 Joules." },
-            { q: "28. For an ideal machine, the relationship between input and output energy is:", options: ["Output < Input", "Output = Input", "Output > Input", "Output = 0"], ans: 1, exp: "An ideal machine has 100% efficiency (Output = Input)." },
-            { q: "29. Kinetic energy represents the work done against:", options: ["Gravity", "Frictional force", "Tension", "Elastic restoring force"], ans: 1, exp: "Kinetic energy is defined as the work done against friction." },
-            { q: "30. Potential energy is typically the work done against:", options: ["Friction", "Gravity", "Viscous drag", "Air resistance"], ans: 1, exp: "Gravitational potential energy is work done against gravity." },
-            { q: "31. What is the value of escape velocity from the Earth?", options: ["9.8 km/s", "11.2 km/s", "3.0 × 10^8 m/s", "5.2 km/s"], ans: 1, exp: "The escape velocity from Earth is approximately 11.2 km/s." },
-            { q: "32. What is the value of escape velocity from the Moon?", options: ["11.2 km/s", "2.3 km/s", "5.0 km/s", "9.8 km/s"], ans: 1, exp: "The escape velocity from the Moon is about 2.3 km/s." },
-            { q: "33. Which of the following is categorized as a non-renewable energy source?", options: ["Solar energy", "Wind energy", "Coal, oil, and natural gas", "Geothermal energy"], ans: 2, exp: "Fossil fuels are non-renewable sources." },
-            { q: "34. Gravitational, electric, and magnetic fields are examples of:", options: ["Non-conservative fields", "Conservative fields", "Dissipative fields", "Frictional fields"], ans: 1, exp: "These are conservative fields." },
-            { q: "35. When a body falls freely under gravity, its total mechanical energy:", options: ["Decreases", "Increases", "Remains constant", "Fluctuates randomly"], ans: 1, exp: "Total mechanical energy remains constant during free fall." },
-            { q: "36. The work done by an electron revolving in a circular orbit around a nucleus is:", options: ["Maximum", "Positive", "Zero", "Negative"], ans: 2, exp: "Work is zero because force is perpendicular to displacement." },
-            { q: "37. If the velocity of a moving body is halved, its kinetic energy becomes:", options: ["Half", "One-fourth", "Double", "Four times"], ans: 1, exp: "K.E. is proportional to v^2, so halving velocity reduces it to 1/4th." },
-            { q: "38. Centripetal force can never perform any:", options: ["Acceleration", "Work", "Direction change", "Velocity modification"], ans: 1, exp: "Centripetal force does zero work." },
+            { q: "27. One kilowatt-hour (1 kWh) is equal to:", options: ["1.0 MJ", "3.6 Mega Joules", "7.46 MJ", "100 MJ"], ans: 1, exp: "1 kWh = 1000 W × 3600 s = 3.6 × 10^6 Joules." },
+            { q: "28. For an ideal machine, the relationship between input and output energy is:", options: ["Output < Input", "Output = Input", "Output > Input", "Output = 0"], ans: 1, exp: "An ideal machine has 100% efficiency, meaning Output equals Input." },
+            { q: "29. Kinetic energy represents the work done against:", options: ["Gravity", "Frictional force", "Tension", "Elastic restoring force"], ans: 1, exp: "Kinetic energy is defined as the work done against friction to bring an object to rest." },
+            { q: "30. Potential energy is typically the work done against:", options: ["Friction", "Gravity", "Viscous drag", "Air resistance"], ans: 1, exp: "Gravitational potential energy is the work done against gravity." },
+            { q: "31. What is the value of escape velocity from the surface of the Earth?", options: ["9.8 km/s", "11.2 km/s", "3.0 × 10^8 m/s", "5.2 km/s"], ans: 1, exp: "The escape velocity from Earth is approximately 11.2 km/s." },
+            { q: "32. What is the value of escape velocity from the surface of the Moon?", options: ["11.2 km/s", "2.3 km/s", "5.0 km/s", "9.8 km/s"], ans: 1, exp: "The escape velocity from the Moon is about 2.3 km/s due to its lower mass and radius." },
+            { q: "33. Which of the following is categorized as a non-renewable energy source?", options: ["Solar energy", "Wind energy", "Coal, oil, and natural gas", "Geothermal energy"], ans: 2, exp: "Fossil fuels like coal and oil are non-renewable sources." },
+            { q: "34. Gravitational, electric, and magnetic fields are examples of:", options: ["Non-conservative fields", "Conservative fields", "Dissipative fields", "Frictional fields"], ans: 1, exp: "These fields are conservative since work done is path-independent." },
+            { q: "35. When a body falls freely under gravity, its total mechanical energy:", options: ["Decreases", "Increases", "Remains constant", "Fluctuates randomly"], ans: 1, exp: "Total mechanical energy is conserved and remains constant during free fall." },
+            { q: "36. The work done by an electron revolving in a circular orbit around a nucleus is:", options: ["Maximum", "Positive", "Zero", "Negative"], ans: 2, exp: "Work is zero because the centripetal force is perpendicular to the instantaneous displacement." },
+            { q: "37. If the velocity of a moving body is halved, its kinetic energy becomes:", options: ["Half", "One-fourth", "Double", "Four times"], ans: 1, exp: "Kinetic energy is proportional to v^2, so halving velocity reduces K.E. to 1/4th." },
+            { q: "38. Centripetal force can never perform any:", options: ["Acceleration", "Work", "Direction change", "Velocity modification"], ans: 1, exp: "Centripetal force does zero work because it acts perpendicular to motion." },
             { q: "39. The dimensions of work are identical to the dimensions of:", options: ["Power", "Torque", "Momentum", "Pressure"], ans: 1, exp: "Both work and torque have dimensions of [ML^2T^-2]." },
-            { q: "40. Solar cells are primarily thin semiconductor devices made from:", options: ["Copper", "Silicon", "Iron", "Aluminum"], ans: 1, exp: "Solar cells are manufactured from high-purity silicon." },
+            { q: "40. Solar cells are primarily thin semiconductor devices made from:", options: ["Copper", "Silicon", "Iron", "Aluminum"], ans: 1, exp: "Standard solar cells are manufactured from high-purity silicon." },
 
-            { q: "41. What is the least count of a standard Vernier Caliper?", options: ["0.1 cm", "0.01 cm", "0.001 cm", "1 cm"], ans: 1, exp: "The least count of a standard Vernier caliper is 0.01 cm." },
-            { q: "42. What is the least count of a standard Screw Gauge?", options: ["0.1 cm", "0.01 cm", "0.001 cm", "0.0001 cm"], ans: 2, exp: "The least count of a screw gauge is 0.001 cm." },
-            { q: "43. What does the first condition of equilibrium state?", options: ["Sum of all torques equals zero", "Sum of all forces equals zero", "Velocity must be maximum", "Acceleration must be maximum"], ans: 1, exp: "The first condition requires vector sum of all forces to be zero." },
-            { q: "44. The second condition of equilibrium deals with the vanishing of:", options: ["Forces", "Torques", "Mass", "Linear velocity"], ans: 1, exp: "The second condition requires net torque to be zero." },
-            { q: "45. The scalar product of two vectors results in a:", options: ["Scalar quantity", "Vector quantity", "Tensor quantity", "Unit vector"], ans: 0, exp: "A dot product yields a scalar value." },
-            { q: "46. The vector product of two vectors results in a:", options: ["Scalar quantity", "Vector quantity", "Zero", "Dimensionless number"], ans: 1, exp: "A cross product yields a vector quantity." },
-            { q: "47. If two vectors are parallel to each other, their cross product is:", options: ["Maximum", "Zero", "One", "Negative"], ans: 1, exp: "Cross product is zero for parallel vectors." },
-            { q: "48. If two vectors are perpendicular, their dot product is:", options: ["Maximum", "Zero", "One", "Minimum"], ans: 1, exp: "Dot product is zero for perpendicular vectors." },
-            { q: "49. One radian is approximately equal to how many degrees?", options: ["57.3°", "90°", "180°", "360°"], ans: 0, exp: "1 radian equals roughly 57.3°." },
-            { q: "50. How many radians are contained in one complete revolution?", options: ["π rad", "2π rad", "3π rad", "4π rad"], ans: 1, exp: "One full rotation equals 2π radians." },
-            { q: "51. What is the SI unit of angular velocity?", options: ["rad", "rad/s", "rad/s²", "m/s"], ans: 1, exp: "Angular velocity is measured in rad/s." },
+            { q: "41. What is the least count of a standard Vernier Caliper?", options: ["0.1 cm", "0.01 cm", "0.001 cm", "1 cm"], ans: 1, exp: "The least count of a standard Vernier caliper is 0.01 cm or 0.1 mm." },
+            { q: "42. What is the least count of a standard Screw Gauge (Micrometer)?", options: ["0.1 cm", "0.01 cm", "0.001 cm", "0.0001 cm"], ans: 2, exp: "The least count of a screw gauge is 0.001 cm or 0.01 mm." },
+            { q: "43. What does the first condition of equilibrium state?", options: ["Sum of all torques equals zero", "Sum of all forces equals zero", "Velocity must be maximum", "Acceleration must be maximum"], ans: 1, exp: "The first condition of equilibrium requires the vector sum of all forces to be zero (ΣF = 0)." },
+            { q: "44. The second condition of equilibrium deals with the vanishing of:", options: ["Forces", "Torques", "Mass", "Linear velocity"], ans: 1, exp: "The second condition requires the net torque acting on the body to be zero (Στ = 0)." },
+            { q: "45. The scalar product (dot product) of two vectors results in a:", options: ["Scalar quantity", "Vector quantity", "Tensor quantity", "Unit vector"], ans: 0, exp: "A dot product yields a scalar value." },
+            { q: "46. The vector product (cross product) of two vectors results in a:", options: ["Scalar quantity", "Vector quantity", "Zero", "Dimensionless number"], ans: 1, exp: "A cross product yields a vector quantity perpendicular to the plane of the vectors." },
+            { q: "47. If two vectors are parallel to each other, their cross product is:", options: ["Maximum", "Zero", "One", "Negative"], ans: 1, exp: "The sine of 0° or 180° is zero, making the cross product zero for parallel vectors." },
+            { q: "48. If two vectors are perpendicular to each other, their dot product is:", options: ["Maximum", "Zero", "One", "Minimum"], ans: 1, exp: "The cosine of 90° is zero, making the dot product zero for orthogonal vectors." },
+            { q: "49. One radian is approximately equal to how many degrees?", options: ["57.3°", "90°", "180°", "360°"], ans: 0, exp: "1 radian equals 180°/π, which is roughly 57.3°." },
+            { q: "50. How many radians are contained in one complete revolution (360°)?", options: ["π rad", "2π rad", "3π rad", "4π rad"], ans: 1, exp: "One full rotation equals 2π radians." },
+            { q: "51. What is the SI unit of angular velocity?", options: ["rad", "rad/s", "rad/s²", "m/s"], ans: 1, exp: "Angular velocity is measured in radians per second (rad/s)." },
             { q: "52. What is the SI unit of angular acceleration?", options: ["rad/s", "rad/s²", "m/s²", "N·m"], ans: 1, exp: "Angular acceleration is measured in rad/s²." },
-            { q: "53. What is the relationship between linear velocity (v) and angular velocity (ω)?", options: ["v = ω / r", "v = rω", "v = r / ω", "v = ω²r"], ans: 1, exp: "v = rω." },
-            { q: "54. Which formula correctly represents centripetal force?", options: ["F = mv", "F = mv² / r", "F = mωr²", "F = m²v / r"], ans: 1, exp: "F = mv²/r." },
-            { q: "55. The moment of inertia (I) of a point mass m at distance r is given by:", options: ["mr", "mr²", "m²r", "1/2 mr²"], ans: 1, exp: "I = mr²." },
-            { q: "56. Angular momentum (L) can be expressed as:", options: ["mvr", "Iω", "Both mvr and Iω", "Only mv"], ans: 2, exp: "L = mvr and L = Iω both apply." },
-            { q: "57. According to conservation of angular momentum, if external torque is zero:", options: ["Linear momentum remains constant", "Angular momentum remains constant", "Kinetic energy remains constant", "Velocity remains constant"], ans: 1, exp: "Angular momentum is conserved when external torque is zero." },
-            { q: "58. What is the formula for the time period (T) of a simple pendulum?", options: ["T = 2π√(g/l)", "T = 2π√(l/g)", "T = π√(l/g)", "T = 2πl/g"], ans: 1, exp: "T = 2π√(l/g)." },
-            { q: "59. The time period of a simple pendulum is independent of its:", options: ["Length", "Acceleration due to gravity", "Mass of the bob", "Location"], ans: 2, exp: "Mass of the bob does not affect the time period." },
-            { q: "60. In damped oscillations, the amplitude of the system with time:", options: ["Increases", "Remains constant", "Gradually decreases", "Drops to zero instantly"], ans: 2, exp: "Amplitude decreases over time due to damping." }
-        ];
-
-        let isExamStarted = false;
-        let isSubmitted = false; 
-
-        function startExam() {
-            const studentName = document.getElementById('student_name').value;
-            const rollNo = document.getElementById('roll_number').value;
-            
-            if (studentName.trim() === "" || rollNo.trim() === "") {
-                alert("⚠️ Please enter your Name and Roll Number before starting the exam!");
-                return;
-            }
-
-            document.getElementById('instructions-screen').style.display = 'none';
-            document.getElementById('quiz-main-section').style.display = 'block';
-            document.ge
+            { q: "53. What is the relationship between linear velocity (v) and angular velocity (ω)?", options: ["v = ω / r", "v = rω", "v = r / ω", "v = ω²r"], ans: 1, exp: "The linear speed is related to angular speed via v = rω." },
+            { q: "54. Which formula correctly represents centripetal force?", options: ["F = mv", "F = mv² / r", "F = mωr²", "F = m²v / r"], ans: 1, exp: "Centripetal force is given by F = mv²/r." },
+            { q: "55. The moment of inertia (I) of a point mass m at distance r is given by:", options: ["mr", "mr²", "m²r", "1/2 mr²"], ans: 1, exp: "Moment of inertia for a point mass is defined as I = mr²." },
+            { q: "56. Angul
