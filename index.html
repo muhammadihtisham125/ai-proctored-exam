@@ -3,163 +3,163 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Proctored Final Exam - Agentic Tech Lab</title>
-    
-    <!-- TensorFlow.js and Object Detection -->
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"></script>
-
+    <title>Secure Quiz with Proctoring</title>
     <style>
-        body { font-family: Arial, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; color: #333; }
-        .header { text-align: center; background: #2c3e50; color: white; padding: 15px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
-        .container { max-width: 800px; margin: 20px auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0px 4px 15px rgba(0,0,0,0.1); }
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #f4f4f9;
+        }
+        .quiz-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        /* Camera Feed Style */
+        #camera-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 150px;
+            height: 110px;
+            border: 3px solid #dc3545;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #000;
+        }
+        #webcam {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        .text-danger { color: #dc3545; }
+        .text-primary { color: #007bff; }
         
-        /* Instructions Screen */
-        #instructions-screen h2 { color: #2c3e50; text-align: center; font-size: 24px; margin-top: 0; border-bottom: 2px solid #ddd; padding-bottom: 10px; }
-        .info-grid { display: flex; justify-content: space-between; background: #eaf2f8; padding: 15px; border-radius: 8px; margin: 20px 0; font-weight: bold; font-size: 16px; color: #2980b9; }
-        .rules-list { background: #fdf2e9; border-left: 5px solid #e74c3c; padding: 15px 15px 15px 35px; border-radius: 5px; font-size: 16px; margin-bottom: 25px; }
-        .rules-list li { margin-bottom: 10px; }
-        .btn-start { background: #2980b9; color: white; border: none; padding: 15px 25px; font-size: 18px; border-radius: 5px; cursor: pointer; width: 100%; font-weight: bold; box-shadow: 0px 4px 6px rgba(0,0,0,0.1); transition: 0.3s; }
-        .btn-start:hover { background: #2471a3; }
-
-        /* Quiz UI (Hidden Initially) */
-        #quiz-main-section { display: none; }
-        #ai-status { background: #f39c12; color: white; padding: 5px 15px; border-radius: 5px; font-size: 14px; font-weight: bold; }
-        .report-card { display: none; background: #fff; padding: 20px; margin-bottom: 20px; border-radius: 8px; border-top: 5px solid #3498db; }
-        .report-card h2 { margin-top: 0; color: #2c3e50; text-align: center; border-bottom: 2px solid #eee; padding-bottom: 10px; }
-        .report-card p { font-size: 17px; margin: 8px 0; }
-        .log-box { background: #fdf2e9; padding: 10px; border-left: 4px solid #e74c3c; margin-top: 15px; font-size: 14px; }
-        .log-box ul { margin: 5px 0; padding-left: 20px; color: #c0392b; font-weight: bold; }
-        .question h3 { color: #000000; font-weight: 900; font-size: 18px; margin-top: 0; }
-        .options label { display: block; margin: 10px 0; cursor: pointer; color: #000000; font-weight: bold; font-size: 16px; }
-        .question { margin-bottom: 25px; padding-bottom: 15px; border-bottom: 2px solid #ddd; }
-        #timer { font-size: 20px; font-weight: bold; color: #e74c3c; background: white; padding: 5px 15px; border-radius: 5px; }
-        .btn-submit { background: #27ae60; color: white; border: none; padding: 12px 20px; font-size: 18px; border-radius: 5px; cursor: pointer; width: 100%; margin-top: 20px; font-weight: bold; }
-        .btn-submit:hover { background: #2ecc71; }
-        .explanation { display: none; padding: 10px; margin-top: 10px; border-left: 4px solid; font-size: 15px; border-radius: 4px; color: #333; }
-        #warnings { color: red; font-weight: bold; text-align: center; margin-top: 10px; margin-bottom: 20px; font-size: 16px; }
-        
-        /* Camera Box */
-        #video-container { display: none; position: fixed; bottom: 10px; right: 10px; width: 220px; height: 165px; background: black; border: 4px solid #e74c3c; border-radius: 8px; overflow: hidden; box-shadow: 0px 4px 15px rgba(0,0,0,0.5); z-index: 1000; }
-        #webcam, #ai-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
-        #ai-canvas { z-index: 1001; }
+        .question { margin-bottom: 15px; }
+        button {
+            padding: 10px 20px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover { background: #218838; }
     </style>
 </head>
 <body>
 
-    <!-- INSTRUCTIONS SCREEN -->
-    <div class="container" id="instructions-screen">
-        <h2>🎓 Agentic Tech Lab - Physics Chapters 1-4 Exam</h2>
-        
-        <div class="info-grid">
-            <div>📄 Total Questions: 60</div>
-            <div>⏱️ Time Allowed: 60 Minutes</div>
-            <div>🏆 Passing Score: 50%</div>
-        </div>
-
-        <h3 style="color: #c0392b;">⚠️ Strict Security Rules (Prohibited Actions):</h3>
-        <ul class="rules-list">
-            <li><strong>Camera & Audio:</strong> Aapko camera aur microphone ka access dena lazmi hai. Iske bina exam start nahi hoga.</li>
-            <li><strong>No Mobile Phones:</strong> Visual AI live camera mein mobile phone detect karega. Frame mein phone aane par strike lag jayegi.</li>
-            <li><strong>Face Tracking:</strong> Exam ke dauran aapka chehra camera frame mein hona chahiye. Kisi aur shakhs ki mojoodgi allow nahi hai.</li>
-            <li><strong>No Tab Switching:</strong> Browser ka tab change karna, minimize karna, ya kisi aur app ko kholna cheating tasawwur hoga.</li>
-            <li><strong>Focus Tracking:</strong> Screen se nazar hata kar idhar-udhar dekhna (clicking outside) strictly prohibited hai.</li>
-            <li><strong>3 Strikes Rule:</strong> Kisi bhi rule ki khilaf warzi par warning (strike) milegi. <strong>3 Strikes</strong> par exam auto-submit hokar FAIL kar diya jayega.</li>
-        </ul>
-
-        <div style="margin: 20px 0; background: #eaf2f8; padding: 15px; border-radius: 8px;">
-            <label><strong>Student Name:</strong></label><br>
-            <input type="text" id="student_name" placeholder="Enter your full name" style="width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 5px; border: 1px solid #ccc; box-sizing: border-box;" required>
-            
-            <label><strong>Roll Number / ID:</strong></label><br>
-            <input type="text" id="roll_number" placeholder="Enter your Roll No (e.g. PHY-001)" style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ccc; box-sizing: border-box;" required>
-        </div>
-
-        <button class="btn-start" onclick="startExam()">I Understand & Start Exam</button>
-    </div>
-
-    <!-- QUIZ SCREEN -->
-    <div id="quiz-main-section">
-        <div class="header">
-            <h2>Physics Chapters 1-4 Exam</h2>
-            <div id="ai-status">🤖 Loading AI Model...</div>
-            <div id="timer">60:00</div>
-        </div>
-
-        <div id="warnings">Warnings: 0 / 3 (Auto-submit after 3 strikes)</div>
-
-        <div class="container report-card" id="result-report"></div>
-        <div class="container" id="quiz-container"></div>
-    </div>
-
-    <!-- CAMERA STREAM -->
-    <div id="video-container">
+    <!-- Camera Feed -->
+    <div id="camera-container">
         <video id="webcam" autoplay playsinline muted></video>
-        <canvas id="ai-canvas"></canvas>
     </div>
 
-    
+    <div class="quiz-container" id="main-content">
+        <h2>Security Quiz</h2>
+        
+        <div class="status-bar">
+            <div class="text-primary">Time Left: <span id="time-left">60</span>s</div>
+            <div class="text-danger">Strikes: <span id="strike-count">0</span> / 3</div>
+        </div>
 
-        // 60 MCQs derived from Physics PDF (Chapters 1 to 4 equivalent/Booster Dose)
-        const quizData = [
-            // Chapter 3: Motion and Force
-            { q: "1. Displacement-time graph ka slope ya gradient kya represent karta hai?", options: ["Acceleration", "Velocity", "Distance", "Force"], ans: 1, exp: "Displacement-time graph ki slope velocity deti hai." },
-            { q: "2. Distance-time graph kabhi bhi kya nahi ho sakta?", options: ["Positive", "Zero", "Negative", "Constant"], ans: 2, exp: "Distance scalar quantity hai aur yeh kabhi negative nahi ho sakti." },
-            { q: "3. Velocity-time graph ke neechay ka area (Area under v-t graph) kya represent karta hai?", options: ["Acceleration", "Distance traveled", "Momentum", "Force"], ans: 1, exp: "v-t graph ka area distance traveled represent karta hai." },
-            { q: "4. Newton's first law of motion ko aur kya kehte hain?", options: ["Law of Momentum", "Law of Inertia", "Law of Force", "Law of Gravity"], ans: 1, exp: "Newton's first law ko Law of Inertia bhi kaha jata hai." },
-            { q: "5. Linear momentum ko 'quantity of motion' sab se pehle kisne kaha tha?", options: ["Einstein", "Newton", "Galileo", "Coulomb"], ans: 1, exp: "Newton ne linear momentum ko quantity of motion kaha tha." },
-            { q: "6. Rate of change of momentum kis ke barabar hota hai?", options: ["Work done", "Force acting on body", "Acceleration", "Impulse"], ans: 1, exp: "Newton's 2nd law ke mutabiq rate of change of momentum force ke equal hai." },
-            { q: "7. Force aur time ka product kya kehlata hai?", options: ["Work", "Impulse of force", "Power", "Energy"], ans: 1, exp: "Product of Force and time (F x t) impulse kehlata hai." },
-            { q: "8. Elastic collision mein konsi cheezein conserved rehti hain?", options: ["Sirf K.E", "Sirf Momentum", "Dono K.E aur Momentum", "Na K.E na Momentum"], ans: 2, exp: "Elastic collision mein kinetic energy aur momentum dono conserved rehte hain." },
-            { q: "9. Inelastic collision mein kya conserved rehta hai?", options: ["Sirf K.E", "Momentum conserved hota hai lekin K.E nahi", "Dono conserved nahi hote", "Sirf K.E conserved hoti hai"], ans: 1, exp: "Inelastic collision mein momentum conserved rehta hai par K.E loss hoti hai." },
-            { q: "10. Projectile motion kis qisam ki motion hai?", options: ["One dimensional", "Two dimensional under gravity", "Three dimensional", "Circular motion"], ans: 1, exp: "Projectile motion gravity ke tehat two dimensional motion hai." },
-            { q: "11. Projectile ka highest point par vertical component of velocity kya hota hai?", options: ["Maximum", "Minimum", "Zero", "Constant"], ans: 2, exp: "Highest point par vertical velocity zero ho jati hai." },
-            { q: "12. Projectile ka horizontal component of velocity kaisa rehta hai?", options: ["Zero", "Constant", "Increasing", "Decreasing"], ans: 1, exp: "Horizontal component of velocity hamesha constant rehta hai." },
-            { q: "13. Long jump ke liye jumper ko kis angle par jump karna chahiye?", options: ["30 degrees", "45 degrees", "60 degrees", "90 degrees"], ans: 1, exp: "Maximum range ke liye angle 45 degrees hona chahiye." },
-            { q: "14. Do equal, anti-parallel aur non-concurrent forces jo sirf angular acceleration paida karein, kya kehlati hain?", options: ["Torque", "Couple", "Equilibrium", "Momentum"], ans: 1, exp: "Aise pair ko couple kehte hain." },
-            { q: "15. Body ko equilibrium mein rakhne ke liye minimum equal forces kitni chahiye?", options: ["1", "2", "3", "4"], ans: 1, exp: "Minimum 2 equal forces body ko equilibrium mein rakh sakti hain." },
-            { q: "16. Atomic aur nuclear particles ke darmiyan collision kaisi hoti hai?", options: ["Inelastic", "Truly elastic collision", "Plastic", "Incomplete"], ans: 1, exp: "Atomic particles ki collision truly elastic hoti hai." },
-            { q: "17. Agar line of action of force origin se guzray toh torque kya hoga?", options: ["Maximum", "Zero", "Negative", "Infinite"], ans: 1, exp: "Moment arm zero hone ki wajah se torque zero hoga." },
-            { q: "18. Rotational motion mein force ka analogue (mutaradif) kya hai?", options: ["Momentum", "Torque", "Inertia", "Power"], ans: 1, exp: "Rotational motion mein force ki jagah torque hota hai." },
-            { q: "19. Newton's laws kahan valid hote hain?", options: ["Non-inertial frames", "Inertial frames only", "Har jagah", "Vacuum mein"], ans: 1, exp: "Newton's laws sirf inertial frames mein hold karte hain." },
-            { q: "20. Jumper air mein ho toh uski motion kis par depend karti hai?", options: ["Air resistance", "Gravity only", "Mass only", "Speed"], ans: 1, exp: "Free fall ya projectile mein sirf gravity act karti hai." },
+        <div id="quiz-area">
+            <div class="question">
+                <p>1. What is the capital of Pakistan?</p>
+                <input type="radio" name="q1" value="Lahore"> Lahore<br>
+                <input type="radio" name="q1" value="Islamabad"> Islamabad<br>
+                <input type="radio" name="q1" value="Karachi"> Karachi<br>
+            </div>
+            <button onclick="submitQuiz()">Submit Quiz</button>
+        </div>
+    </div>
 
-            // Chapter 4: Work and Energy
-            { q: "21. Agar force aur displacement ke darmiyan angle $\theta < 90^\circ$ ho, toh work done kya hoga?", options: ["Negative", "Zero", "Positive", "Infinite"], ans: 2, exp: "Acute angle par work done positive hota hai." },
-            { q: "22. Agar $\theta = 90^\circ$ ho, toh work done kitna hoga?", options: ["1 J", "Positive", "Zero", "Negative"], ans: 2, exp: "Cos(90) = 0 hone ki wajah se work done zero hota hai." },
-            { q: "23. Frictional force kis qisam ki force hai?", options: ["Conservative", "Non-conservative", "Gravitational", "Centripetal"], ans: 1, exp: "Friction non-conservative force hai." },
-            { q: "24. Closed path mein conservative field ke tehat work done kya hota hai?", options: ["Maximum", "Zero", "Positive", "Negative"], ans: 1, exp: "Conservative field mein close path ka total work zero hota hai." },
-            { q: "25. Force aur velocity ka product kya kehlata hai?", options: ["Work", "Energy", "Power", "Momentum"], ans: 2, exp: "P = F . v (Power) kehlata hai." },
-            { q: "26. 1 Horse Power (HP) kitne Watts ke barabar hota hai?", options: ["500 W", "746 W", "1000 W", "550 W"], ans: 1, exp: "1 HP = 746 Watts hota hai." },
-            { q: "27. 1 kWh (kilowatt-hour) kitni energy ke barabar hai?", options: ["1.0 MJ", "3.6 Mega Joule", "7.46 MJ", "100 MJ"], ans: 1, exp: "1 kWh = 3.6 x 10^6 J (3.6 MJ)." },
-            { q: "28. Ideal machine ke liye efficiency kya hoti hai?", options: ["Output < Input", "Output = Input", "Output > Input", "Zero"], ans: 1, exp: "Ideal machine mein output aur input barabar hote hain." },
-            { q: "29. Kinetic Energy kis ke khilaf kiya gaya work hai?", options: ["Gravity", "Frictional force", "Tension", "Spring force"], ans: 1, exp: "K.E. work done against friction hoti hai." },
-            { q: "30. Potential Energy kis ke khilaf kiya gaya work hai?", options: ["Friction", "Gravity", "Drag force", "Magnetic force"], ans: 1, exp: "P.E. gravity ke khilaf work done hai." },
-            { q: "31. Earth ki surface se escape velocity ki value kitni hai?", options: ["9.8 km/s", "11.2 km/s", "3.0 x 10^8 m/s", "5.2 km/s"], ans: 1, exp: "Escape velocity from Earth 11.2 km/s hai." },
-            { q: "32. Moon se escape velocity ki value kitni hai?", options: ["11.2 km/s", "2.3 km/s", "5.0 km/s", "9.8 km/s"], ans: 1, exp: "Moon ki escape velocity 2.3 km/s hai." },
-            { q: "33. In mein se konsa non-renewable energy source hai?", options: ["Solar energy", "Wind energy", "Coal and Oil", "Geothermal energy"], ans: 2, exp: "Coal, oil aur gas non-renewable sources hain." },
-            { q: "34. Gravitational, Electric, aur Magnetic fields kaise fields hain?", options: ["Non-conservative", "Conservative", "Frictional", "Random"], ans: 1, exp: "Yeh sab conservative fields hain." },
-            { q: "35. Jab body free fall karti hai, toh uski total mechanical energy kaisi rehti hai?", options: ["Khatam ho jati hai", "Constant rehti hai", "Increase hoti hai", "Fluctuate karti hai"], ans: 1, exp: "Conservation of mechanical energy ki wajah se total energy constant rehti hai." },
-            { q: "36. Electron jab nucleus ke gird circle mein revolve karta hai, toh uska work done kya hota hai?", options: ["Maximum", "Positive", "Zero", "Negative"], ans: 2, exp: "Centripetal force ke sath displacement perpendicular hone ki wajah se work zero hota hai." },
-            { q: "37. Agar velocity half ho jaye, toh kinetic energy par kya asar padega?", options: ["Half ho jayegi", "One-fourth ho jayegi", "Double ho jayegi", "Same rahegi"], ans: 1, exp: "K.E. = 1/2 m(v/2)^2, yani 1/4th ho jayegi." },
-            { q: "38. Centripetal force kabhi bhi kya nahi kar sakti?", options: ["Acceleration", "Work", "Velocity change", "Direction change"], ans: 1, exp: "Centripetal force zero work karti hai." },
-            { q: "39. Work ki dimension kiske similar hoti hai?", options: ["Power", "Torque", "Momentum", "Pressure"], ans: 1, exp: "Work aur torque dono ki dimensions [ML^2 T^-2] hain." },
-            { q: "40. Solar cells kis material se banaye jate hain?", options: ["Copper", "Silicon", "Iron", "Aluminum"], ans: 1, exp: "Solar cells thin silicon cells se bante hain." },
+    <script>
+        // Configuration Variables
+        let timeRemaining = 60; // 60 seconds timer
+        let strikes = 0;
+        const maxStrikes = 3;
+        let isQuizActive = true;
+        let timerInterval;
 
-            // Additional Core Physics Concepts (Measurements, Vectors & Equilibrium)
-            { q: "41. Vernier Caliper ka least count kitna hota hai?", options: ["0.1 cm", "0.01 cm", "0.001 cm", "1 cm"], ans: 1, exp: "Vernier caliper ka least count 0.01 cm ya 0.1 mm hota hai." },
-            { q: "42. Screw Gauge ka least count kitna hota hai?", options: ["0.1 cm", "0.01 cm", "0.001 cm", "0.0001 cm"], ans: 2, exp: "Screw gauge ka least count 0.001 cm ya 0.01 mm hota hai." },
-            { q: "43. Equilibrium ki pehli condition (First condition of equilibrium) kya hai?", options: ["Sum of all torques is zero", "Sum of all forces is zero", "Velocity is maximum", "Acceleration is maximum"], ans: 1, exp: "First condition of equilibrium kehti hai ke net force zero ($\Sigma F = 0$) honi chahiye." },
-            { q: "44. Equilibrium ki dusri condition (Second condition) kis se mutaliq hai?", options: ["Forces", "Torques", "Mass", "Velocity"], ans: 1, exp: "Second condition net torque zero ($\Sigma \tau = 0$) hone par mabni hai." },
-            { q: "45. Scalar product (Dot product) do vectors ka kya deta hai?", options: ["Scalar quantity", "Vector quantity", "Tensor", "Null vector"], ans: 0, exp: "Dot product hamesha ek scalar quantity deta hai." },
-            { q: "46. Vector product (Cross product) do vectors ka kya deta hai?", options: ["Scalar quantity", "Vector quantity", "Zero", "Constant"], ans: 1, exp: "Cross product hamesha ek vector quantity deta hai." },
-            { q: "47. Agar do vectors parallel hon, toh unka cross product kya hoga?", options: ["Maximum", "Zero", "One", "Negative"], ans: 1, exp: "Parallel vectors mein sin(0) = 0 hota hai, isliye cross product zero hota hai." },
-            { q: "48. Agar do vectors perpendicular hon, toh unka dot product kya hoga?", options: ["Maximum", "Zero", "One", "Minimum"], ans: 1, exp: "Perpendicular vectors mein cos(90) = 0 hota hai." },
-            { q: "49. 1 Radian kitne degrees ke barabar hota hai?", options: ["57.3 degrees", "90 degrees", "180 degrees", "360 degrees"], ans: 0, exp: "1 radian approximately 57.3 degrees ke equal hota hai." },
-            { q: "50. Ek complete circle (1 revolution) mein kitneradians hote hain?", options: ["$\pi$ radian", "$2\pi$ radian", "$3\pi$ radian", "$4\pi$ radian"], ans: 1, exp: "1 revolution = $2\pi$ radians." },
-            { q: "51. Angular velocity ka SI unit kya hai?", options: ["rad", "rad/s", "rad/s^2", "m/s"], ans: 1, exp: "Angular velocity ($\omega$) ka unit rad/s hai." },
-            { q: "52. Angular acceleration ka unit kya hai?", options: ["rad/s", "rad/s^2", "m/s^2", "N.m"], ans: 1, exp: "Angular acceleration ($\alpha$) ka unit rad/s^2 hai." },
-            { q: "53. Linear velocity aur angular velocity mein kya relation hai?", options: ["$v = \omega / r$", "$v = r \omega$", "$v = r / \omega$", "$v = \omega^2 r$"], ans: 1, exp: "Linear aur angular velocity ka relation $v = r\omega$ hai." },
-            { q: "54. Centripetal force ka formula kya hai?", options: ["$F = mv$", "$F = mv^2 / r$", "$F = m \omega r^2$", "$F = m^2v / r$"], ans: 1, exp: "Centripetal force $F = mv^2/r$ hoti hai." },
-            { q: "55. Moment of inertia (I) ka formula kya hai?", options: ["$mr$", "$mr^2$", "$m^2r$", "$1/2 mr^2$"], ans: 1, exp: "Moment of inertia $I = mr^2$ hota hai." },
-            { q: "56. Angular momentum ($L$) kiske barabar hota hai?", options: ["$mvr$", "$I\omega$", "Dono $mvr$ aur $I\omega$", "Sirf $mv$"], ans: 2, exp: "Angular mo
+        // 1. Camera Initialization
+        async function startCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                document.getElementById('webcam').srcObject = stream;
+            } catch (error) {
+                alert("Camera access is strictly required to start this quiz!");
+                endQuiz("Disqualified: Camera access denied.");
+            }
+        }
+
+        // 2. Timer Logic
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                if (!isQuizActive) return;
+                
+                timeRemaining--;
+                document.getElementById('time-left').innerText = timeRemaining;
+
+                if (timeRemaining <= 0) {
+                    endQuiz("Time is up! Your quiz has been auto-submitted.");
+                }
+            }, 1000);
+        }
+
+        // 3. Tab Switching & Security Detection
+        document.addEventListener("visibilitychange", () => {
+            // Agar quiz active hai aur user dusri tab mein gaya
+            if (document.hidden && isQuizActive) {
+                strikes++;
+                document.getElementById('strike-count').innerText = strikes;
+                
+                if (strikes >= maxStrikes) {
+                    endQuiz("Disqualified! You exceeded the maximum allowed tab switches (3 Strikes).");
+                } else {
+                    alert(`WARNING! Do not switch tabs or minimize the window.\nStrike: ${strikes} out of ${maxStrikes}`);
+                }
+            }
+        });
+
+        // End Quiz Function
+        function endQuiz(message) {
+            isQuizActive = false;
+            clearInterval(timerInterval);
+            
+            // Stop Camera
+            const videoElement = document.getElementById('webcam');
+            const stream = videoElement.srcObject;
+            if (stream) {
+                const tracks = stream.getTracks();
+                tracks.forEach(track => track.stop());
+            }
+
+            // Show result
+            document.getElementById('quiz-area').innerHTML = `<h3 class="text-danger">${message}</h3>`;
+        }
+
+        // Manual Submit
+        function submitQuiz() {
+            if (isQuizActive) {
+                endQuiz("Quiz submitted successfully!");
+            }
+        }
+
+        // Start everything when page loads
+        window.onload = () => {
+            startCamera();
+            startTimer();
+        };
+    </script>
+</body>
+</html>
