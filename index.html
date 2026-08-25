@@ -98,16 +98,7 @@
         <canvas id="ai-canvas"></canvas>
     </div>
 
-    <script>
-        // Check if student has already submitted the exam on this browser
-        window.onload = () => {
-            if (localStorage.getItem("exam_submitted") === "true") {
-                document.getElementById('instructions-screen').innerHTML = `
-                    <h2 style="color: #e74c3c; border:none;">🚫 Exam Already Completed!</h2>
-                    <p style="text-align:center; font-size: 18px; font-weight:bold;">Aap apna exam pehle hi submit kar chuke hain. Multiple attempts allow nahi hain.</p>
-                `;
-            }
-        };
+    
 
         // 60 MCQs derived from Physics PDF (Chapters 1 to 4 equivalent/Booster Dose)
         const quizData = [
