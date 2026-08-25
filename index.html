@@ -3,163 +3,179 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Secure Quiz with Proctoring</title>
+    <title>AI Proctored Final Exam - Agentic Tech Lab</title>
+    
+    <!-- TensorFlow.js and Object Detection -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"></script>
+
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 20px auto;
-            padding: 20px;
-            background-color: #f4f4f9;
-        }
-        .quiz-container {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
-        /* Camera Feed Style */
-        #camera-container {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            width: 150px;
-            height: 110px;
-            border: 3px solid #dc3545;
-            border-radius: 8px;
-            overflow: hidden;
-            background: #000;
-        }
-        #webcam {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        .status-bar {
-            display: flex;
-            justify-content: space-between;
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 20px;
-        }
-        .text-danger { color: #dc3545; }
-        .text-primary { color: #007bff; }
+        body { font-family: Arial, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; color: #333; }
+        .header { text-align: center; background: #2c3e50; color: white; padding: 15px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .container { max-width: 800px; margin: 20px auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0px 4px 15px rgba(0,0,0,0.1); }
         
-        .question { margin-bottom: 15px; }
-        button {
-            padding: 10px 20px;
-            background: #28a745;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        button:hover { background: #218838; }
+        /* Instructions Screen */
+        #instructions-screen h2 { color: #2c3e50; text-align: center; font-size: 24px; margin-top: 0; border-bottom: 2px solid #ddd; padding-bottom: 10px; }
+        .info-grid { display: flex; justify-content: space-between; background: #eaf2f8; padding: 15px; border-radius: 8px; margin: 20px 0; font-weight: bold; font-size: 16px; color: #2980b9; }
+        .rules-list { background: #fdf2e9; border-left: 5px solid #e74c3c; padding: 15px 15px 15px 35px; border-radius: 5px; font-size: 16px; margin-bottom: 25px; }
+        .rules-list li { margin-bottom: 10px; }
+        .btn-start { background: #2980b9; color: white; border: none; padding: 15px 25px; font-size: 18px; border-radius: 5px; cursor: pointer; width: 100%; font-weight: bold; box-shadow: 0px 4px 6px rgba(0,0,0,0.1); transition: 0.3s; }
+        .btn-start:hover { background: #2471a3; }
+
+        /* Quiz UI (Hidden Initially) */
+        #quiz-main-section { display: none; }
+        #ai-status { background: #f39c12; color: white; padding: 5px 15px; border-radius: 5px; font-size: 14px; font-weight: bold; }
+        .report-card { display: none; background: #fff; padding: 20px; margin-bottom: 20px; border-radius: 8px; border-top: 5px solid #3498db; }
+        .report-card h2 { margin-top: 0; color: #2c3e50; text-align: center; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        .report-card p { font-size: 17px; margin: 8px 0; }
+        .log-box { background: #fdf2e9; padding: 10px; border-left: 4px solid #e74c3c; margin-top: 15px; font-size: 14px; }
+        .log-box ul { margin: 5px 0; padding-left: 20px; color: #c0392b; font-weight: bold; }
+        .question h3 { color: #000000; font-weight: 900; font-size: 18px; margin-top: 0; }
+        .options label { display: block; margin: 10px 0; cursor: pointer; color: #000000; font-weight: bold; font-size: 16px; }
+        .question { margin-bottom: 25px; padding-bottom: 15px; border-bottom: 2px solid #ddd; }
+        #timer { font-size: 20px; font-weight: bold; color: #e74c3c; background: white; padding: 5px 15px; border-radius: 5px; }
+        .btn-submit { background: #27ae60; color: white; border: none; padding: 12px 20px; font-size: 18px; border-radius: 5px; cursor: pointer; width: 100%; margin-top: 20px; font-weight: bold; }
+        .btn-submit:hover { background: #2ecc71; }
+        .explanation { display: none; padding: 10px; margin-top: 10px; border-left: 4px solid; font-size: 15px; border-radius: 4px; color: #333; }
+        #warnings { color: red; font-weight: bold; text-align: center; margin-top: 10px; margin-bottom: 20px; font-size: 16px; }
+        
+        /* Camera Box */
+        #video-container { display: none; position: fixed; bottom: 10px; right: 10px; width: 220px; height: 165px; background: black; border: 4px solid #e74c3c; border-radius: 8px; overflow: hidden; box-shadow: 0px 4px 15px rgba(0,0,0,0.5); z-index: 1000; }
+        #webcam, #ai-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
+        #ai-canvas { z-index: 1001; }
     </style>
 </head>
 <body>
 
-    <!-- Camera Feed -->
-    <div id="camera-container">
-        <video id="webcam" autoplay playsinline muted></video>
+    <!-- INSTRUCTIONS SCREEN -->
+    <div class="container" id="instructions-screen">
+        <h2>🎓 Agentic Tech Lab - Data Science Final Exam</h2>
+        
+        <div class="info-grid">
+            <div>📄 Total Questions: 60</div>
+            <div>⏱️ Time Allowed: 60 Minutes</div>
+            <div>🏆 Passing Score: 50%</div>
+        </div>
+
+        <h3 style="color: #c0392b;">⚠️ Strict Security Rules (Prohibited Actions):</h3>
+        <ul class="rules-list">
+            <li><strong>Camera & Audio:</strong> Aapko camera aur microphone ka access dena lazmi hai. Iske bina exam start nahi hoga.</li>
+            <li><strong>No Mobile Phones:</strong> Visual AI live camera mein mobile phone detect karega. Frame mein phone aane par strike lag jayegi.</li>
+            <li><strong>Face Tracking:</strong> Exam ke dauran aapka chehra camera frame mein hona chahiye. Kisi aur shakhs ki mojoodgi allow nahi hai.</li>
+            <li><strong>No Tab Switching:</strong> Browser ka tab change karna, minimize karna, ya kisi aur app ko kholna cheating tasawwur hoga.</li>
+            <li><strong>Focus Tracking:</strong> Screen se nazar hata kar idhar-udhar dekhna (clicking outside) strictly prohibited hai.</li>
+            <li><strong>3 Strikes Rule:</strong> Kisi bhi rule ki khilaf warzi par warning (strike) milegi. <strong>3 Strikes</strong> par exam auto-submit hokar FAIL kar diya jayega.</li>
+        </ul>
+
+        <div style="margin: 20px 0; background: #eaf2f8; padding: 15px; border-radius: 8px;">
+            <label><strong>Student Name:</strong></label><br>
+            <input type="text" id="student_name" placeholder="Enter your full name" style="width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 5px; border: 1px solid #ccc; box-sizing: border-box;" required>
+            
+            <label><strong>Roll Number / ID:</strong></label><br>
+            <input type="text" id="roll_number" placeholder="Enter your Roll No (e.g. CS-001)" style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ccc; box-sizing: border-box;" required>
+        </div>
+
+        <button class="btn-start" onclick="startExam()">I Understand & Start Exam</button>
     </div>
 
-    <div class="quiz-container" id="main-content">
-        <h2>Security Quiz</h2>
-        
-        <div class="status-bar">
-            <div class="text-primary">Time Left: <span id="time-left">60</span>s</div>
-            <div class="text-danger">Strikes: <span id="strike-count">0</span> / 3</div>
+    <!-- QUIZ SCREEN -->
+    <div id="quiz-main-section">
+        <div class="header">
+            <h2>Data Science Final Exam</h2>
+            <div id="ai-status">🤖 Loading AI Model...</div>
+            <div id="timer">60:00</div>
         </div>
 
-        <div id="quiz-area">
-            <div class="question">
-                <p>1. What is the capital of Pakistan?</p>
-                <input type="radio" name="q1" value="Lahore"> Lahore<br>
-                <input type="radio" name="q1" value="Islamabad"> Islamabad<br>
-                <input type="radio" name="q1" value="Karachi"> Karachi<br>
-            </div>
-            <button onclick="submitQuiz()">Submit Quiz</button>
-        </div>
+        <div id="warnings">Warnings: 0 / 3 (Auto-submit after 3 strikes)</div>
+
+        <div class="container report-card" id="result-report"></div>
+        <div class="container" id="quiz-container"></div>
+    </div>
+
+    <!-- CAMERA STREAM -->
+    <div id="video-container">
+        <video id="webcam" autoplay playsinline muted></video>
+        <canvas id="ai-canvas"></canvas>
     </div>
 
     <script>
-        // Configuration Variables
-        let timeRemaining = 60; // 60 seconds timer
-        let strikes = 0;
-        const maxStrikes = 3;
-        let isQuizActive = true;
-        let timerInterval;
-
-        // 1. Camera Initialization
-        async function startCamera() {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-                document.getElementById('webcam').srcObject = stream;
-            } catch (error) {
-                alert("Camera access is strictly required to start this quiz!");
-                endQuiz("Disqualified: Camera access denied.");
-            }
-        }
-
-        // 2. Timer Logic
-        function startTimer() {
-            timerInterval = setInterval(() => {
-                if (!isQuizActive) return;
-                
-                timeRemaining--;
-                document.getElementById('time-left').innerText = timeRemaining;
-
-                if (timeRemaining <= 0) {
-                    endQuiz("Time is up! Your quiz has been auto-submitted.");
-                }
-            }, 1000);
-        }
-
-        // 3. Tab Switching & Security Detection
-        document.addEventListener("visibilitychange", () => {
-            // Agar quiz active hai aur user dusri tab mein gaya
-            if (document.hidden && isQuizActive) {
-                strikes++;
-                document.getElementById('strike-count').innerText = strikes;
-                
-                if (strikes >= maxStrikes) {
-                    endQuiz("Disqualified! You exceeded the maximum allowed tab switches (3 Strikes).");
-                } else {
-                    alert(`WARNING! Do not switch tabs or minimize the window.\nStrike: ${strikes} out of ${maxStrikes}`);
-                }
-            }
-        });
-
-        // End Quiz Function
-        function endQuiz(message) {
-            isQuizActive = false;
-            clearInterval(timerInterval);
-            
-            // Stop Camera
-            const videoElement = document.getElementById('webcam');
-            const stream = videoElement.srcObject;
-            if (stream) {
-                const tracks = stream.getTracks();
-                tracks.forEach(track => track.stop());
-            }
-
-            // Show result
-            document.getElementById('quiz-area').innerHTML = `<h3 class="text-danger">${message}</h3>`;
-        }
-
-        // Manual Submit
-        function submitQuiz() {
-            if (isQuizActive) {
-                endQuiz("Quiz submitted successfully!");
-            }
-        }
-
-        // Start everything when page loads
+        // Check if student has already submitted the exam on this browser
         window.onload = () => {
-            startCamera();
-            startTimer();
+            if (localStorage.getItem("exam_submitted") === "true") {
+                document.getElementById('instructions-screen').innerHTML = `
+                    <h2 style="color: #e74c3c; border:none;">🚫 Exam Already Completed!</h2>
+                    <p style="text-align:center; font-size: 18px; font-weight:bold;">Aap apna exam pehle hi submit kar chuke hain. Multiple attempts allow nahi hain.</p>
+                `;
+            }
         };
-    </script>
-</body>
-</html>
+
+        // 60 MCQs Array
+        const quizData = [
+            // Week 1
+            { q: "1. Python mein variable define karne ke liye kaunsa syntax sahi hai?", options: ["int x = 5", "x = 5", "variable x = 5", "x : 5"], ans: 1, exp: "Python ek dynamically typed language hai." },
+            { q: "2. Jupyter Notebook mein current cell ko run karne ka shortcut kya hai?", options: ["Ctrl + R", "Shift + Enter", "Alt + Run", "Tab + Enter"], ans: 1, exp: "Shift + Enter cell run karta hai." },
+            { q: "3. Git mein nayi repository initialize karne ki command kya hai?", options: ["git start", "git init", "git new", "git repo"], ans: 1, exp: "git init local git repository banata hai." },
+            { q: "4. Python mein 'for' loop ka asal maqsad kya hai?", options: ["Condition check karna", "Error handle karna", "Sequence par iterate karna", "Variable delete karna"], ans: 2, exp: "For loop lists/strings par iteration ke liye hai." },
+            { q: "5. Google Colab Data Science mein kyu mashhoor hai?", options: ["Yeh offline chalta hai", "Free GPU/TPU access deta hai", "Sirf Python 2 chalata hai", "Isme coding mushkil hai"], ans: 1, exp: "Colab free GPU access deta hai." },
+            { q: "6. Python mein Lambda function kya hota hai?", options: ["Bada function", "Anonymous one-liner function", "Built-in module", "Error handling"], ans: 1, exp: "Lambda bina naam ke chote functions hote hain." },
+            { q: "7. GitHub ka main maqsad kya hai?", options: ["Social media for coders", "Code version control aur collaboration", "Video hosting", "Database management"], ans: 1, exp: "GitHub source code version control ke liye hai." },
+            { q: "8. Python list mein naya element add karne ke liye konsa method use hota hai?", options: ["list.add()", "list.insert_end()", "list.append()", "list.push()"], ans: 2, exp: "append() method aakhir mein item add karta hai." },
+            { q: "9. Dictionary mein data kis format mein store hota hai?", options: ["Rows and Columns", "Key-Value pairs", "Index based", "Continuous memory"], ans: 1, exp: "Dictionaries key:value pairs use karti hain." },
+            { q: "10. Git mein 'merge conflict' kab aata hai?", options: ["Internet band hone par", "Jab do log same file ki same line change karein", "Repo delete hone par", "Commit push karne par"], ans: 1, exp: "Git confuse hota hai ke kiski changes rakhe." },
+
+            // Week 2
+            { q: "11. Kisi dataset ki average nikalne ko kya kehte hain?", options: ["Mode", "Median", "Mean", "Range"], ans: 2, exp: "Mean average hoti hai." },
+            { q: "12. Outliers ki mojoodgi mein konsi metric sab se behtar hai?", options: ["Mean", "Median", "Mode", "Variance"], ans: 1, exp: "Median outliers se mutasir nahi hota." },
+            { q: "13. Jo value dataset mein sab se zyada baar aaye, use kya kehte hain?", options: ["Mean", "Median", "Mode", "Standard Deviation"], ans: 2, exp: "Mode most frequent value hai." },
+            { q: "14. Standard Deviation kya measure karta hai?", options: ["Data ki average", "Data ka spread mean ke ird-gird", "Maximum value", "Total sum"], ans: 1, exp: "Yeh spread ko measure karta hai." },
+            { q: "15. Agar do variables ek sath increase hon, toh unki correlation kya hogi?", options: ["Negative", "Zero", "Positive", "Neutral"], ans: 2, exp: "Sath increase hona positive correlation hai." },
+            { q: "16. Ek fair coin ko toss karne par 'Heads' aane ki probability kya hai?", options: ["1.0", "0.5", "0.25", "0.0"], ans: 1, exp: "Total 2 outcomes hain, so 1/2 = 0.5." },
+            { q: "17. Covariance aur Correlation mein main farq kya hai?", options: ["Dono same hain", "Covariance limit mein hoti hai", "Correlation standardized hoti hai (-1 to 1)", "Covariance hamesha positive hoti hai"], ans: 2, exp: "Correlation standardized hone ki wajah se compare karna asaan hoti hai." },
+            { q: "18. Normal Distribution (Bell Curve) mein ~68% data kahan hota hai?", options: ["1 Standard Deviation mein", "2 Standard Deviations mein", "3 Standard Deviations mein", "Mean ke bahar"], ans: 0, exp: "68% data 1 std dev ke andar hota hai." },
+            { q: "19. Variance ki calculation mein hum differences ko square kyu karte hain?", options: ["Calculation asaan karne ke liye", "Negative values ko positive karne ke liye", "Outliers chhupane ke liye", "Size kam karne ke liye"], ans: 1, exp: "Positive aur negative ko cancel hone se rokne ke liye." },
+            { q: "20. Descriptive statistics ka asal maqsad kya hai?", options: ["Future predict karna", "Past data ko summarize karna", "ML model train karna", "Data generate karna"], ans: 1, exp: "Yeh mojooda data ko describe karti hai." },
+
+            // Week 3
+            { q: "21. NumPy library mainly kis cheez ke liye use hoti hai?", options: ["Web scraping", "Numerical computing aur arrays", "Database management", "Frontend design"], ans: 1, exp: "NumPy arrays math operations ke liye hai." },
+            { q: "22. Pandas mein CSV file read karne ka function kaunsa hai?", options: ["pd.read_file()", "pd.open_csv()", "pd.read_csv()", "pd.load_csv()"], ans: 2, exp: "read_csv() standard function hai." },
+            { q: "23. Dataframe ki rows aur columns ki tadad dekhne ke liye konsa attribute use hota hai?", options: ["df.size()", "df.shape", "df.length", "df.count"], ans: 1, exp: "df.shape ek tuple return karta hai." },
+            { q: "24. Pandas mein missing values ko handle karne ke liye kya use hota hai?", options: ["df.dropna()", "df.fill_null()", "df.fillna()", "df.replace_na()"], ans: 2, exp: "fillna() values replace karta hai." },
+            { q: "25. NumPy mein 'Broadcasting' ka kya matlab hai?", options: ["Internet par bhejna", "Alag shapes ke arrays par math operations", "List mein convert karna", "Data delete karna"], ans: 1, exp: "Yeh chotay arrays ko stretch karta hai." },
+            { q: "26. Feature Engineering ka kya maqsad hai?", options: ["Naye features banana", "Data delete karna", "Server setup karna", "Code format karna"], ans: 0, exp: "Model ke liye behtar inputs banana." },
+            { q: "27. Pandas DataFrame mein groupby ka maqsad?", options: ["df.group()", "SQL ke GROUP BY jesa kaam", "df.aggregate()", "df.cluster()"], ans: 1, exp: "Groups banane ke liye use hota hai." },
+            { q: "28. Categorical variables ko numbers mein badalne ki technique?", options: ["Normalization", "Standardization", "One-Hot Encoding", "PCA"], ans: 2, exp: "Har category ka binary column banta hai." },
+            { q: "29. NumPy Python lists se fast kyu hai?", options: ["C language aur Vectorization", "Cloud par chalti hai", "Datatypes nahi hote", "List zyada fast hai"], ans: 0, exp: "C-level operations isko fast banate hain." },
+            { q: "30. Data Preprocessing ka pehla qadam?", options: ["Model training", "Data visualization", "Data Cleaning", "Deployment"], ans: 2, exp: "Missing values handle karna pehla qadam hai." },
+
+            // Week 4
+            { q: "31. Python mein basic plotting library kaunsi hai?", options: ["Keras", "Matplotlib", "TensorFlow", "Scikit-learn"], ans: 1, exp: "Matplotlib foundational library hai." },
+            { q: "32. Do numerical variables ka relationship dekhne ke liye best plot?", options: ["Pie Chart", "Bar Chart", "Scatter Plot", "Histogram"], ans: 2, exp: "Scatter plot trend dikhata hai." },
+            { q: "33. Seaborn library kis par base karti hai?", options: ["Pandas", "Matplotlib", "Plotly", "Bokeh"], ans: 1, exp: "Seaborn Matplotlib par bani hai." },
+            { q: "34. Histogram ka primary use kya hai?", options: ["Categories compare karna", "Frequency/Distribution dekhna", "3D plotting", "Time series"], ans: 1, exp: "Data bins mein frequency dikhata hai." },
+            { q: "35. EDA (Exploratory Data Analysis) ka main maqsad?", options: ["Model deploy karna", "Data ke patterns samajhna", "Database banana", "Client ko report bhejna"], ans: 1, exp: "Data ki insights lena." },
+            { q: "36. Correlation matrix visualize karne ke liye plot?", options: ["sns.pairplot", "sns.heatmap", "sns.boxplot", "sns.violinplot"], ans: 1, exp: "Heatmap colors se matrix dikhata hai." },
+            { q: "37. Business Dashboard ka sab se eham function?", options: ["Complex code dikhana", "KPIs ko visual format mein track karna", "Data encrypt karna", "Email bhejha"], ans: 1, exp: "KPIs track karne ke liye." },
+            { q: "38. Matplotlib mein subplots banane ke liye?", options: ["plt.multiplot", "plt.subplots", "plt.grid", "plt.figure"], ans: 1, exp: "Multiple grids ke liye use hota hai." },
+            { q: "39. Outliers detect karne ke liye konsa visual tool behtar hai?", options: ["Line chart", "Boxplot", "Pie chart", "Bar chart"], ans: 1, exp: "Boxplot extremes aur quartiles dikhata hai." },
+            { q: "40. 'Business Storytelling' ka maqsad?", options: ["Zyada colors use karna", "Actionable insights aasaan zaban mein dena", "Sirf math dikhana", "3D charts banana"], ans: 1, exp: "Data se narrative create karna." },
+
+            // Week 5
+            { q: "41. SQL ka full form kya hai?", options: ["Simple Query Language", "Structured Query Language", "Standard Question Language", "Sequential Query Language"], ans: 1, exp: "Relational DBs ki standard language hai." },
+            { q: "42. Sab columns ka data nikalne ke liye query?", options: ["SELECT ALL", "SELECT *", "SHOW *", "GET ALL"], ans: 1, exp: "* ka matlab all columns hai." },
+            { q: "43. 'Primary Key' ki khasiyat kya hai?", options: ["Hamesha text hoti hai", "Unique aur NOT NULL", "Sirf numbers hote hain", "Duplicate ho sakti hai"], ans: 1, exp: "Unique row identifier hai." },
+            { q: "44. Jo records dono tables mein match karein?", options: ["LEFT JOIN", "RIGHT JOIN", "FULL OUTER JOIN", "INNER JOIN"], ans: 3, exp: "INNER JOIN matching records lata hai." },
+            { q: "45. 'WHERE' clause ka kya kaam hai?", options: ["Data sort karna", "Condition filter karna", "Columns group karna", "Naya column banana"], ans: 1, exp: "Data lane se pehle filtering karta hai." },
+            { q: "46. In mein se konsa Aggregate Function nahi hai?", options: ["SUM()", "COUNT()", "LENGTH()", "AVG()"], ans: 2, exp: "LENGTH() aggregate function nahi hai." },
+            { q: "47. Python ko SQLite se connect karne ke liye library?", options: ["sqlite3", "pyodbc", "sqlalchemy", "psycopg2"], ans: 0, exp: "Built-in sqlite3 use hoti hai." },
+            { q: "48. WHERE aur HAVING clause mein difference?", options: ["Dono same hain", "WHERE grouping se pehle, HAVING baad mein", "HAVING grouping se pehle lagta hai", "WHERE sirf text par lagta hai"], ans: 1, exp: "HAVING aggregate functions ke sath use hota hai." },
+            { q: "49. Result descending order mein sort karne ke liye?", options: ["ORDER BY col_name DESC", "SORT BY col_name DOWN", "ORDER DESC col_name", "GROUP BY col_name DESC"], ans: 0, exp: "ORDER BY ke sath DESC use hota hai." },
+            { q: "50. Foreign Key ka maqsad kya hota hai?", options: ["Table delete karna", "Do tables mein relationship banana", "Duplicate values rokna", "Data encrypt karna"], ans: 1, exp: "Tables ko link karti hai." },
+
+            // Week 6
+            { q: "51. Output label (target) majood ho toh konsi learning hai?", options: ["Unsupervised", "Supervised", "Reinforcement", "Semi-supervised"], ans: 1, exp: "Labeled data Supervised learning hai." },
+            { q: "52. Ghar ki qeemat (continuous value) predict karna?", options: ["Classification", "Clustering", "Regression", "Dimensionality Reduction"], ans: 2, exp: "Continuous variables Regression hoti hai." },
+            { q: "53. Spam ya Not Spam predict karna?", options: ["Classification", "Regression", "Clustering", "Association"], ans: 0, exp: "Categorical prediction Classification hai." },
+            { q: "54. Model evaluate karne ke liye data division?", options: ["100% Training", "Train/Test split", "Sirf Test", "Delete kar ke naya data lana"], ans: 1, exp: "Generalization check karne ke liye." },
+            { q: "55. Overfitting kab hoti hai?", options: ["Model dono par bura ho", "Model training rat le aur naye data par fail ho", "Model train na ho", "Data kam ho"], ans: 1, exp: "Model noise ko bhi learn kar leta hai." },
+            { q: "56. Konsa Classification metric nahi hai?", options: ["Accuracy", "F1-Score", "Mean Squared Error (MSE)", "Precision"], ans: 2, exp: "MSE Regression metric hai." },
+            { q: "57. Scikit-learn mein model train karne ka method?", options: ["model.train()", "model
