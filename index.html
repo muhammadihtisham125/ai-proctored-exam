@@ -25,8 +25,11 @@
         .report-card { display: none; background: #fff; padding: 20px; margin-bottom: 20px; border-radius: 8px; border-top: 5px solid #3498db; }
         .report-card h2 { margin-top: 0; color: #2c3e50; text-align: center; border-bottom: 2px solid #eee; padding-bottom: 10px; }
         .report-card p { font-size: 17px; margin: 8px 0; }
-        .log-box { background: #fdf2e9; padding: 10px; border-left: 4px solid #e74c3c; margin-top: 15px; font-size: 14px; }
-        .log-box ul { margin: 5px 0; padding-left: 20px; color: #c0392b; font-weight: bold; }
+        .log-box { background: #fdf2e9; padding: 15px; border-left: 4px solid #e74c3c; margin-top: 15px; font-size: 14px; border-radius: 4px; }
+        .log-box ul { margin: 8px 0; padding-left: 20px; color: #c0392b; font-weight: bold; }
+        .strike-summary { display: flex; gap: 15px; margin-top: 10px; flex-wrap: wrap; }
+        .strike-badge { background: #fadbd8; color: #78281f; padding: 5px 10px; border-radius: 4px; font-size: 13px; font-weight: bold; }
+        
         .question h3 { color: #000000; font-weight: 900; font-size: 18px; margin-top: 0; }
         .options label { display: block; margin: 10px 0; cursor: pointer; color: #000000; font-weight: bold; font-size: 16px; }
         .question { margin-bottom: 25px; padding-bottom: 15px; border-bottom: 2px solid #ddd; }
@@ -52,10 +55,10 @@
             <div>🏆 Passing Score: 50%</div>
         </div>
 
-        <h3 style="color: #c0392b;">⚠️ Exam Guidelines & Monitoring:</h3>
+        <h3 style="color: #e74c3c;">⚠️ Security Guidelines & Monitoring:</h3>
         <ul class="rules-list">
-            <li><strong>Background Monitoring:</strong> Tab switches and focus changes are silently tracked for review reports. No interruptions will occur.</li>
-            <li><strong>No Restrictions:</strong> Complete your exam freely without any lockouts.</li>
+            <li><strong>Silent Strike Logging:</strong> Tab switches, window focus loss, and AI camera events are recorded as specific strike types for your final evaluation report.</li>
+            <li><strong>No Interruption:</strong> The exam will not block or auto-submit due to strikes; you can complete it freely.</li>
             <li><strong>Submission:</strong> Click "Submit Exam" at the bottom when you finish.</li>
         </ul>
 
@@ -77,7 +80,7 @@
             <div id="timer">60:00</div>
         </div>
 
-        <div id="warnings">Activity Strikes Recorded: 0</div>
+        <div id="warnings">Total Strikes Recorded: 0</div>
 
         <div class="container report-card" id="result-report"></div>
         <div class="container" id="quiz-container"></div>
@@ -89,7 +92,6 @@
     </div>
 
     <script>
-        // Original Data Science Questions Array (Weeks 1 to 6)
         const quizData = [
             { q: "1. Python mein variable define karne ke liye kaunsa syntax sahi hai?", options: ["int x = 5", "x = 5", "variable x = 5", "x : 5"], ans: 1, exp: "Python ek dynamically typed language hai." },
             { q: "2. Jupyter Notebook mein current cell ko run karne ka shortcut kya hai?", options: ["Ctrl + R", "Shift + Enter", "Alt + Run", "Tab + Enter"], ans: 1, exp: "Shift + Enter cell run karta hai." },
@@ -150,7 +152,7 @@
             { q: "52. Ghar ki qeemat (continuous value) predict karna?", options: ["Classification", "Clustering", "Regression", "Dimensionality Reduction"], ans: 2, exp: "Continuous variables Regression hoti hai." },
             { q: "53. Spam ya Not Spam predict karna?", options: ["Classification", "Regression", "Clustering", "Association"], ans: 0, exp: "Categorical prediction Classification hai." },
             { q: "54. Model evaluate karne ke liye data division?", options: ["100% Training", "Train/Test split", "Sirf Test", "Delete kar ke naya data lana"], ans: 1, exp: "Generalization check karne ke liye." },
-            { q: "55. Overfitting kab hoti hai?", options: ["Model dono par bura ho", "Model training rat le aur naye data par fail ho", "Model train na ho", "Data kam ho"], ans: 1, exp: "Model noise ko bhi learn kar लेता hai." },
+            { q: "55. Overfitting kab hoti hai?", options: ["Model dono par bura ho", "Model training rat le aur naye data par fail ho", "Model train na ho", "Data kam ho"], ans: 1, exp: "Model noise ko bhi learn kar leta hai." },
             { q: "56. Konsa Classification metric nahi hai?", options: ["Accuracy", "F1-Score", "Mean Squared Error (MSE)", "Precision"], ans: 2, exp: "MSE Regression metric hai." },
             { q: "57. Scikit-learn mein model train karne ka method?", options: ["model.train()", "model.fit()", "model.predict()", "model.evaluate()"], ans: 1, exp: "fit(X, y) training method hai." },
             { q: "58. K-Means konsi Machine Learning ka algorithm hai?", options: ["Supervised", "Classification", "Unsupervised Clustering", "Reinforcement"], ans: 2, exp: "Unlabeled data ko clusters mein bant'ta hai." },
@@ -160,8 +162,14 @@
 
         let isExamStarted = false;
         let isSubmitted = false; 
-        let strikeCount = 0;
-        let strikeLogs = []; 
+        let totalStrikes = 0;
+        let strikeLogs = [];
+        let strikeCountsByType = {
+            "Tab Switch / Minimize": 0,
+            "Focus Lost / Click Outside": 0,
+            "Mobile Phone Detected": 0,
+            "Multiple Persons Detected": 0
+        };
 
         function startExam() {
             const studentName = document.getElementById('student_name').value;
@@ -179,7 +187,7 @@
             isExamStarted = true;
             loadQuiz();
             startTimer();
-            setTimeout(initCamera, 100);
+            setTimeout(initCameraAndAI, 100);
         }
 
         function loadQuiz() {
@@ -202,6 +210,7 @@
             isSubmitted = true;
             
             clearInterval(timerInterval); 
+            if(window.aiInterval) clearInterval(window.aiInterval);
 
             localStorage.setItem("exam_submitted", "true");
 
@@ -223,7 +232,7 @@
             let percentage = ((score / total) * 100).toFixed(2);
             let status = percentage >= 50 ? "<span style='color:#27ae60;'><b>PASSED</b></span>" : "<span style='color:#c0392b;'><b>FAILED</b></span>";
             
-            let logHTML = strikeLogs.length > 0 ? `<ul>${strikeLogs.map(log => `<li>${log}</li>`).join('')}</ul>` : `<span style="color:#27ae60; font-weight:bold;">No suspicious activity recorded. Clean attempt!</span>`;
+            let logHTML = strikeLogs.length > 0 ? `<ul>${strikeLogs.map(log => `<li>${log}</li>`).join('')}</ul>` : `<span style="color:#27ae60; font-weight:bold;">No security strikes recorded. Clean attempt!</span>`;
 
             const reportDiv = document.getElementById('result-report');
             reportDiv.style.display = "block";
@@ -240,11 +249,21 @@
                         <p><strong>Score:</strong> ${percentage}%</p>
                         <p><strong>Result:</strong> ${status}</p>
                         <p><strong>Submitted By:</strong> <u>${typeOfSubmission}</u></p>
+                        <p><strong>Total Strikes:</strong> <span style="color: #e74c3c;">${totalStrikes}</span></p>
                     </div>
                 </div>
+
                 <div class="log-box">
-                    <strong>⚠️ Recorded Security Strikes (Silent Count):</strong>
-                    <br>${logHTML}
+                    <strong>📌 Strike Summary by Type:</strong>
+                    <div class="strike-summary">
+                        <div class="strike-badge">Tab Switches: ${strikeCountsByType["Tab Switch / Minimize"]}</div>
+                        <div class="strike-badge">Focus Losses: ${strikeCountsByType["Focus Lost / Click Outside"]}</div>
+                        <div class="strike-badge">Mobile Phones: ${strikeCountsByType["Mobile Phone Detected"]}</div>
+                        <div class="strike-badge">Multiple Persons: ${strikeCountsByType["Multiple Persons Detected"]}</div>
+                    </div>
+                    <br>
+                    <strong>📋 Chronological Strike Logs:</strong>
+                    ${logHTML}
                 </div>
             `;
             window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -252,28 +271,56 @@
             if (window.mediaStream) window.mediaStream.getTracks().forEach(track => track.stop());
         }
 
-        function recordStrike(reason) {
+        function recordStrike(strikeType) {
             if (isSubmitted || !isExamStarted) return;
-            strikeCount++;
+            totalStrikes++;
+            strikeCountsByType[strikeType]++;
             let timestamp = new Date().toLocaleTimeString();
-            strikeLogs.push(`[${timestamp}] Strike ${strikeCount}: ${reason}`);
+            strikeLogs.push(`[${timestamp}] Type: <b>${strikeType}</b>`);
             const warnEl = document.getElementById('warnings');
-            if(warnEl) warnEl.innerText = `Activity Strikes Recorded: ${strikeCount}`;
+            if(warnEl) warnEl.innerText = `Total Strikes Recorded: ${totalStrikes}`;
         }
 
-        // Silent background tracking without disturbing the student
+        // Event Listeners for Silent Tracking
         document.addEventListener("visibilitychange", () => {
-            if (document.hidden) recordStrike("Candidate switched the browser tab or minimized.");
+            if (document.hidden) recordStrike("Tab Switch / Minimize");
         });
         window.addEventListener("blur", () => {
-            recordStrike("Focus lost / Clicked outside the exam window.");
+            recordStrike("Focus Lost / Click Outside");
         });
 
-        async function initCamera() {
+        async function initCameraAndAI() {
             try {
                 window.mediaStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
                 const videoElement = document.getElementById('webcam');
                 videoElement.srcObject = window.mediaStream;
+
+                cocoSsd.load().then(aiModel => {
+                    window.aiInterval = setInterval(async () => {
+                        if (isSubmitted || !videoElement || videoElement.readyState !== 4) return;
+                        const predictions = await aiModel.detect(videoElement);
+
+                        let phoneFound = false;
+                        let personCount = 0;
+
+                        predictions.forEach(pred => {
+                            if (pred.class === 'cell phone') phoneFound = true;
+                            if (pred.class === 'person') personCount++;
+                        });
+
+                        // Throttle logging for continuous AI frames (e.g., once every 10 seconds per category)
+                        if (phoneFound && (window.lastPhoneLog || 0) < Date.now() - 10000) {
+                            window.lastPhoneLog = Date.now();
+                            recordStrike("Mobile Phone Detected");
+                        }
+                        if (personCount > 1 && (window.lastPersonLog || 0) < Date.now() - 10000) {
+                            window.lastPersonLog = Date.now();
+                            recordStrike("Multiple Persons Detected");
+                        }
+                    }, 3000);
+                }).catch(e => {
+                    console.log("AI model load failed:", e);
+                });
             } catch (err) {
                 console.log("Camera access error:", err);
             }
