@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Proctored Physics Exam - Agentic Tech Lab</title>
+    
+    <!-- TensorFlow.js and Object Detection -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"></script>
+
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; color: #333; }
+        .header { text-align: center; background: #2c3e50; color: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+        
+        /* Main Layout with Sidebar */
+        .exam-layout { display: flex; max-width: 1200px; margin: 0 auto; gap: 20px; align-items: flex-start; }
+        .quiz-area { flex: 3; background: white; padding: 30px; border-radius: 8px; box-shadow: 0px 4px 15px rgba(0,0,0,0.1); }
+        
+        /* Sidebar Panel */
+        .sidebar-panel { flex: 1; background: white; padding: 20px; border-radius: 8px; box-shadow: 0px 4px 15px rgba(0,0,0,0.1); position: sticky; top: 20px; }
+        .sidebar-panel h3 { margin-top: 0; color: #2c3e50; border-bottom: 2px solid #eee; padding-bottom: 10px; font-size: 18px; text-align: center; }
+        .stat-box { background: #f8f9f9; padding: 12px; border-radius: 6px; margin-bottom: 12px; font-size: 15px; display: flex; justify-content: space-between; font-weight: bold; border-left: 4px solid #2980b9; }
+        .stat-box span { color: #2c3e50; }
+
+        /* Instructions Screen */
+        .container { max-width: 800px; margin: 20px auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0px 4px 15px rgba(0,0,0,0.1); }
+        #instructions-screen h2 { color: #2c3e50; text-align: center; font-size: 24px; margin-top: 0; border-bottom: 2px solid #ddd; padding-bottom: 10px; }
+        .info-grid { display: flex; justify-content: space-between; background: #eaf2f8; padding: 15px; border-radius: 8px; margin: 20px 0; font-weight: bold; font-size: 16px; color: #2980b9; flex-wrap: wrap; gap: 10px; }
+        .rules-list { background: #fdf2e9; border-left: 5px solid #e74c3c; padding: 15px 15px 15px 35px; border-radius: 5px; font-size: 16px; margin-bottom: 25px; }
+        .rules-list li { margin-bottom: 10px; }
+        .btn-start { background: #2980b9; color: white; border: none; padding: 15px 25px; font-size: 18px; border-radius: 5px; cursor: pointer; width: 100%; font-weight: bold; box-shadow: 0px 4px 6px rgba(0,0,0,0.1); }
+        .btn-start:hover { background: #2471a3; }
+
+        #quiz-main-section { display: none; }
+        .report-card { background: #fff; padding: 20px; margin-bottom: 20px; border-radius: 8px; border-top: 5px solid #3498db; }
+        .report-card h2 { margin-top: 0; color: #2c3e50; text-align: center; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        .log-box { background: #fdf2e9; padding: 15px; border-left: 4px solid #e74c3c; margin-top: 15px; font-size: 14px; border-radius: 4px; }
+        .log-box ul { margin: 8px 0; padding-left: 20px; color: #c0392b; font-weight: bold; }
+        .strike-summary { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+        .strike-badge { background: #fadbd8; color: #78281f; padding: 5px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
+        
+        .question h3 { color: #000000; font-weight: 900; font-size: 18px; margin-top: 0; }
+        .options label { display: block; margin: 10px 0; cursor: pointer; color: #000000; font-weight: bold; font-size: 16px; }
+        .question { margin-bottom: 25px; padding-bottom: 15px; border-bottom: 2px solid #ddd; }
+        
+        .btn-submit { background: #27ae60; color: white; border: none; padding: 12px 20px; font-size: 16px; border-radius: 5px; cursor: pointer; width: 100%; font-weight: bold; margin-top: 15px; box-shadow: 0px 3px 5px rgba(0,0,0,0.1); }
+        .btn-submit:hover { background: #2ecc71; }
+        .explanation { display: none; padding: 10px; margin-top: 10px; border-left: 4px solid; font-size: 15px; border-radius: 4px; color: #333; }
+        
+        #video-container { display: none; position: fixed; bottom: 10px; right: 10px; width: 180px; height: 135px; background: black; border: 3px solid #27ae60; border-radius: 8px; overflow: hidden; z-index: 1000; box-shadow: 0px 4px 15px rgba(0,0,0,0.5); }
+        #webcam, #ai-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
+        #ai-canvas { z-index: 1001; }
+    </style>
+</head>
+<body>
+
+    <!-- INSTRUCTIONS SCREEN -->
+    <div class="container" id="instructions-screen">
+        <h2>🎓 Agentic Tech Lab - Physics Chapters 1-4 Final Exam</h2>
+        
+        <div class="info-grid">
+            <div>📄 Total Questions: 60</div>
+            <div>⏱️ Time Allowed: 60 Minutes</div>
+            <div>🏆 Passing Score: 50%</div>
+        </div>
+
+        <h3 style="color: #e74c3c;">⚠️ Security Guidelines & Monitoring:</h3>
+        <ul class="rules-list">
+            <li><strong>Single Attempt Rule:</strong> You can submit this exam only once using your Roll Number / ID. Multiple attempts are blocked.</li>
+            <li><strong>AI Proctoring:</strong> Camera, microphone, multi-person detection, and focus are silently monitored.</li>
+            <li><strong>Live Dashboard:</strong> Track your remaining time, attempted questions, and live strikes in the side panel.</li>
+        </ul>
+
+        <div style="margin: 20px 0; background: #eaf2f8; padding: 15px; border-radius: 8px;" id="input-form-box">
+            <label><strong>Student Name:</strong></label><br>
+            <input type="text" id="student_name" placeholder="Enter your full name" style="width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 5px; border: 1px solid #ccc; box-sizing: border-box;" required>
+            
+            <label><strong>Roll Number / ID:</strong></label><br>
+            <input type="text" id="roll_number" placeholder="Enter your Roll No (e.g. PHY-001)" style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ccc; box-sizing: border-box;" required>
+            
+            <button class="btn-start" onclick="startExam()" style="margin-top: 15px;">I Understand & Start Exam</button>
+        </div>
+    </div>
+
+    <!-- QUIZ SCREEN WITH SIDEBAR LAYOUT -->
+    <div id="quiz-main-section">
+        <div class="header">
+            <h2>Physics Chapters 1-4 Exam - Live Proctored Session</h2>
+        </div>
+
+        <div class="exam-layout">
+            <!-- Left Side: MCQs Container -->
+            <div class="quiz-area">
+                <div class="container report-card" id="result-report" style="display:none;"></div>
+                <div id="quiz-container"></div>
+            </div>
+
+            <!-- Right Side: Sticky Control & Stats Panel -->
+            <div class="sidebar-panel">
+                <h3>📊 Live Exam Status</h3>
+                
+                <div class="stat-box" style="border-left-color: #e74c3c;">
+                    ⏱️ Timer: <span id="timer" style="color: #e74c3c;">60:00</span>
+                </div>
+                
+                <div class="stat-box" style="border-left-color: #27ae60;">
+                    ✅ Attempted: <span id="stat-attempted">0</span> / 60
+                </div>
+                
+                <div class="stat-box" style="border-left-color: #f39c12;">
+                    ⏳ Remaining: <span id="stat-remaining">60</span>
+                </div>
+                
+                <div class="stat-box" style="border-left-color: #c0392b;">
+                    ⚠️ Total Strikes: <span id="stat-strikes" style="color: #c0392b;">0</span>
+                </div>
+
+                <button class="btn-submit" onclick="submitQuiz('Manual (Student clicked Submit)')">Submit Exam</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CAMERA STREAM -->
+    <div id="video-container">
+        <video id="webcam" autoplay playsinline muted></video>
+        <canvas id="ai-canvas"></canvas>
+    </div>
+
+    <script>
+        window.onload = () => {
+            const submittedRolls = JSON.parse(localStorage.getItem("submitted_rolls") || "[]");
+            if(submittedRolls.length > 0) {
+                document.getElementById('input-form-box').innerHTML = `
+                    <div style="text-align: center; color: #c0392b; font-weight: bold; font-size: 18px; padding: 20px;">
+                        🚫 Exam Already Submitted! <br><br>
+                        <span style="color: #333; font-size: 15px;">You have already attempted and submitted this exam from this browser. Multiple submissions are not allowed.</span>
+                    </div>
+                `;
+            }
+        };
+
+        const quizData = [
+            { q: "1. What is the least count of a standard Vernier Caliper?", options: ["0.1 cm", "0.01 cm", "0.001 cm", "1 cm"], ans: 1, exp: "The least count of a standard Vernier caliper is 0.01 cm or 0.1 mm." },
+            { q: "2. What is the least count of a standard Screw Gauge (Micrometer)?", options: ["0.1 cm", "0.01 cm", "0.001 cm", "0.0001 cm"], ans: 2, exp: "The least count of a screw gauge is 0.001 cm or 0.01 mm." },
+            { q: "3. What does the first condition of equilibrium state?", options: ["Sum of all torques equals zero", "Sum of all forces equals zero", "Velocity must be maximum", "Acceleration must be maximum"], ans: 1, exp: "The first condition of equilibrium requires the vector sum of all forces to be zero." },
+            { q: "4. The second condition of equilibrium deals with the vanishing of:", options: ["Forces", "Torques", "Mass", "Linear velocity"], ans: 1, exp: "The second condition requires the net torque acting on the body to be zero." },
+            { q: "5. The scalar product (dot product) of two vectors results in a:", options: ["Scalar quantity", "Vector quantity", "Tensor quantity", "Unit vector"], ans: 0, exp: "A dot product yields a scalar value." },
+            { q: "6. The vector product (cross product) of two vectors results in a:", options: ["Scalar quantity", "Vector quantity", "Zero", "Dimensionless number"], ans: 1, exp: "A cross product yields a vector quantity perpendicular to the plane." },
+            { q: "7. If two vectors are parallel to each other, their cross product is:", options: ["Maximum", "Zero", "One", "Negative"], ans: 1, exp: "The sine of 0 or 180 degrees is zero, making cross product zero." },
+            { q: "8. If two vectors are perpendicular to each other, their dot product is:", options: ["Maximum", "Zero", "One", "Minimum"], ans: 1, exp: "The cosine of 90 degrees is zero, making dot product zero." },
+            { q: "9. One radian is approximately equal to how many degrees?", options: ["57.3°", "90°", "180°", "360°"], ans: 0, exp: "1 radian equals roughly 57.3 degrees." },
+            { q: "10. How many radians are contained in one complete revolution (360°)?", options: ["π rad", "2π rad", "3π rad", "4π rad"], ans: 1, exp: "One full rotation equals 2π radians." },
+
+            { q: "11. What does the slope or gradient of a displacement-time graph represent?", options: ["Acceleration", "Velocity", "Distance", "Force"], ans: 1, exp: "The slope of a displacement-time graph gives the velocity." },
+            { q: "12. Which of the following graphs can never be negative?", options: ["Displacement-time graph", "Velocity-time graph", "Distance-time graph", "Acceleration-time graph"], ans: 2, exp: "Distance is a scalar quantity and can never be negative." },
+            { q: "13. What does the area under a velocity-time graph represent?", options: ["Acceleration", "Distance traveled", "Momentum", "Force"], ans: 1, exp: "The area under a v-t graph represents the total distance traveled." },
+            { q: "14. What is Newton's first law of motion also known as?", options: ["Law of Momentum", "Law of Inertia", "Law of Force", "Law of Universal Gravitation"], ans: 1, exp: "Newton's first law provides the definition of inertia." },
+            { q: "15. Who originally called linear momentum the 'quantity of motion'?", options: ["Albert Einstein", "Isaac Newton", "Galileo Galilei", "Charles-Augustin de Coulomb"], ans: 1, exp: "Isaac Newton referred to linear momentum as the quantity of motion." },
+            { q: "16. The rate of change of momentum of a body is equal to what?", options: ["Work done", "Force acting on the body", "Acceleration produced", "Impulse"], ans: 1, exp: "According to Newton's second law, the rate of change of momentum equals the applied force." },
+            { q: "17. The product of force and time interval (F × t) is called:", options: ["Work", "Impulse of force", "Power", "Torque"], ans: 1, exp: "The product of force and duration of impact is known as impulse." },
+            { q: "18. In an elastic collision, which of the following quantities are conserved?", options: ["Only kinetic energy", "Only momentum", "Both kinetic energy and momentum", "Neither kinetic energy nor momentum"], ans: 2, exp: "In an ideal elastic collision, both kinetic energy and linear momentum are conserved." },
+            { q: "19. In an inelastic collision, what remains conserved?", options: ["Only kinetic energy", "Momentum is conserved, but kinetic energy is not", "Neither momentum nor kinetic energy", "Only kinetic energy is conserved"], ans: 1, exp: "In an inelastic collision, momentum is conserved while kinetic energy is not." },
+            { q: "20. Projectile motion is a two-dimensional motion under the action of:", options: ["Air resistance", "Gravity", "Centrifugal force", "Magnetic force"], ans: 1, exp: "Projectile motion takes place in two dimensions under the sole action of gravity." },
+
+            { q: "21. What is the vertical component of velocity of a projectile at its highest point?", options: ["Maximum", "Minimum", "Zero", "Constant"], ans: 2, exp: "At maximum height, the vertical component of velocity becomes zero." },
+            { q: "22. The horizontal component of velocity of a projectile:", options: ["Changes continuously", "Remains constant", "Becomes zero", "Increases with time"], ans: 1, exp: "In the absence of air resistance, the horizontal velocity component remains constant." },
+            { q: "23. To achieve the maximum horizontal range, a jumper should jump at an angle of:", options: ["30°", "45°", "60°", "90°"], ans: 1, exp: "The maximum range of a projectile is obtained at an angle of 45°." },
+            { q: "24. Two equal, anti-parallel, and non-concurrent forces producing only angular acceleration form a:", options: ["Torque", "Couple", "Equilibrium state", "Momentum vector"], ans: 1, exp: "A couple consists of two equal, antiparallel, non-concurrent forces." },
+            { q: "25. What is the minimum number of equal forces required to keep a body in equilibrium?", options: ["1", "2", "3", "4"], ans: 1, exp: "A minimum of 2 equal and opposite forces can keep a body in equilibrium." },
+            { q: "26. Collisions between atomic, nuclear, and fundamental particles are considered:", options: ["Inelastic collisions", "Truly elastic collisions", "Plastic collisions", "Completely inelastic collisions"], ans: 1, exp: "Collisions at the atomic or subatomic level are truly elastic." },
+            { q: "27. If the line of action of an applied force passes through the origin/axis of rotation, the torque produced is:", options: ["Maximum", "Zero", "Negative", "Infinite"], ans: 1, exp: "When the line of action passes through the pivot, the moment arm is zero, making torque zero." },
+            { q: "28. In rotational motion, what plays the role analogous to force in linear motion?", options: ["Momentum", "Torque", "Inertia", "Power"], ans: 1, exp: "Torque is the rotational analogue of force." },
+            { q: "29. Newton's laws of motion hold true strictly in:", options: ["Non-inertial frames", "Inertial frames only", "Accelerated reference frames", "All reference frames"], ans: 1, exp: "Newton's laws are valid only within inertial frames of reference." },
+            { q: "30. When an object falls freely under gravity, its acceleration is:", options: ["Zero", "Uniform/Constant", "Variable", "Infinite"], ans: 1, exp: "Free-fall motion exhibits a uniform acceleration equal to g." },
+
+            { q: "31. When the angle between force and displacement is acute (θ < 90°), the work done is:", options: ["Negative", "Zero", "Positive", "Undefined"], ans: 2, exp: "Work done is positive when force aids displacement." },
+            { q: "32. If the force and displacement vectors are perpendicular to each other (θ = 90°), the work done is:", options: ["Maximum", "Positive", "Zero", "Negative"], ans: 2, exp: "Since cos(90°) = 0, the work done is zero." },
+            { q: "33. Frictional force is classified as which type of force?", options: ["Conservative", "Non-conservative", "Gravitational", "Central"], ans: 1, exp: "Friction is a non-conservative dissipative force." },
+            { q: "34. The work done along a closed path in a conservative field is always:", options: ["Maximum", "Zero", "Positive", "Negative"], ans: 1, exp: "Net work done in a closed loop for conservative fields is zero." },
+            { q: "35. The dot product of force and velocity (F · v) defines:", options: ["Work", "Energy", "Power", "Momentum"], ans: 2, exp: "Power is equal to the scalar product of force and velocity." },
+            { q: "36. One horsepower (HP) is equivalent to:", options: ["500 Watts", "746 Watts", "1000 Watts", "550 Watts"], ans: 1, exp: "1 mechanical horsepower equals 746 Watts." },
+            { q: "37. One kilowatt-hour (1 kWh) is equal to:", options: ["1.0 MJ", "3.6 Mega Joules", "7.46 MJ", "100 MJ"], ans: 1, exp: "1 kWh = 3.6 × 10^6 Joules." },
+            { q: "38. For an ideal machine, the relationship between input and output energy is:", options: ["Output < Input", "Output = Input", "Output > Input", "Output = 0"], ans: 1, exp: "An ideal machine has 100% efficiency, meaning Output equals Input." },
+            { q: "39. Kinetic energy represents the work done against:", options: ["Gravity", "Frictional force", "Tension", "Elastic restoring force"], ans: 1, exp: "Kinetic energy is defined as the work done against friction." },
+            { q: "40. Potential energy is typically the work done against:", options: ["Friction", "Gravity", "Viscous drag", "Air resistance"], ans: 1, exp: "Gravitational potential energy is the work done against gravity." },
+
+            { q: "41. What is the value of escape velocity from the surface of the Earth?", options: ["9.8 km/s", "11.2 km/s", "3.0 × 10^8 m/s", "5.2 km/s"], ans: 1, exp: "The escape velocity from Earth is approximately 11.2 km/s." },
+            { q: "42. What is the value of escape velocity from the surface of the Moon?", options: ["11.2 km/s", "2.3 km/s", "5.0 km/s", "9.8 km/s"], ans: 1, exp: "The escape velocity from the Moon is about 2.3 km/s." },
+            { q: "43. Which of the following is categorized as a non-renewable energy source?", options: ["Solar energy", "Wind energy", "Coal, oil, and natural gas", "Geothermal energy"], ans: 2, exp: "Fossil fuels like coal and oil are non-renewable sources." },
+            { q: "44. Gravitational, electric, and magnetic fields are examples of:", options: ["Non-conservative fields", "Conservative fields", "Dissipative fields", "Frictional fields"], ans: 1, exp: "These fields are conservative since work done is path-independent." },
+            { q: "45. When a body falls freely under gravity, its total mechanical energy:", options: ["Decreases", "Increases", "Remains constant", "Fluctuates randomly"], ans: 1, exp: "Total mechanical energy is conserved and remains constant during free fall." },
+            { q: "46. The work done by an electron revolving in a circular orbit around a nucleus is:", options: ["Maximum", "Positive", "Zero", "Negative"], ans: 2, exp: "Work is zero because force is perpendicular to displacement." },
+            { q: "47. If the velocity of a moving body is halved, its kinetic energy becomes:", options: ["Half", "One-fourth", "Double", "Four times"], ans: 1, exp: "Kinetic energy is proportional to v^2, so halving velocity reduces it to 1/4th." },
+            { q: "48. Centripetal force can never perform any:", options: ["Acceleration", "Work", "Direction change", "Velocity modification"], ans: 1, exp: "Centripetal force does zero work." },
+            { q: "49. The dimensions of work are identical to the dimensions of:", options: ["Power", "Torque", "Momentum", "Pressure"], ans: 1, exp: "Both work and torque have dimensions of [ML^2T^-2]." },
+            { q: "50. Solar cells are primarily thin semiconductor devices made from:", options: ["Copper", "Silicon", "Iron", "Aluminum"], ans: 1, exp: "Standard solar cells are manufactured from high-purity silicon." },
+
+            { q: "51. What is the SI unit of angular velocity?", options: ["rad", "rad/s", "rad/s²", "m/s"], ans: 1, exp: "Angular velocity is measured in radians per second (rad/s)." },
+            { q: "52. What is the SI unit of angular acceleration?", options: ["rad/s", "rad/s²", "m/s²", "N·m"], ans: 1, exp: "Angular acceleration is measured in rad/s²." },
+            { q: "53. What is the relationship between linear velocity (v) and angular velocity (ω)?", options: ["v = ω / r", "v = rω", "v = r / ω", "v = ω²r"], ans: 1, exp: "The linear speed is related to angular speed via v = rω." },
+            { q: "54. Which formula correctly represents centripetal force?", options: ["F = mv", "F = mv² / r", "F = mωr²", "F = m²v / r"], ans: 1, exp: "Centripetal force is given by F = mv²/r." },
+            { q: "55. The moment of inertia (I) of a point mass m at distance r is given by:", options: ["mr", "mr²", "m²r", "1/2 mr²"], ans: 1, exp: "Moment of inertia for a point mass is defined as I = mr²." },
+            { q: "56. Angular momentum (L) can be expressed as:", options: ["mvr", "Iω", "Both mvr and Iω", "Only mv"], ans: 2, exp: "Angular momentum is expressed as both mvr and Iω." },
+            { q: "57. According to the law of conservation of angular momentum, if the external torque is zero:", options: ["Linear momentum remains constant", "Angular momentum remains constant", "Kinetic energy remains constant", "Velocity remains constant"], ans: 1, exp: "In the absence of external torque, angular momentum is conserved." },
+            { q: "58. What is the formula for the time period (T) of a simple pendulum?", options: ["T = 2π√(g/l)", "T = 2π√(l/g)", "T = π√(l/g)", "T = 2πl/g"], ans: 1, exp: "The time period of a simple pendulum is T = 2π√(l/g)." },
+            { q: "59. The time period of a simple pendulum is independent of its:", options: ["Length", "Acceleration due to gravity", "Mass of the bob", "Location/Altitude"], ans: 2, exp: "The mass of the bob does not affect the time period." },
+            { q: "60. In damped oscillations, the amplitude of the system with time:", options: ["Increases", "Remains constant", "Gradually decreases", "Drops to zero instantly"], ans: 2, exp: "Damped oscillations experience energy loss, causing amplitudes to decrease over time." }
+        ];
+
+        let isExamStarted = false;
+        let isSubmitted = false; 
+        let totalStrikes = 0;
+        let strikeLogs = [];
+        let strikeCountsByType = {
+            "Tab Switch / Minimize": 0,
+            "Focus Lost / Click Outside": 0,
+            "Mobile Phone Detected": 0,
+            "Multiple Persons Detected": 0,
+            "Hidden From Camera (Missing)": 0,
+            "Loud Sound / Noise Detected": 0
+        };
+        let lastStrikeTime = 0;
+        let currentRollNo = "";
+
+        function startExam() {
+            const studentName = document.getElementById('student_name').value.trim();
+            const rollNo = document.getElementById('roll_number').value.trim();
+            
+            if (studentName === "" || rollNo === "") {
+                alert("⚠️ Please enter your Name and Roll Number!");
+                return;
+            }
+
+            let submittedRolls = JSON.parse(localStorage.getItem("submitted_rolls") || "[]");
+            if (submittedRolls.includes(rollNo)) {
+                alert("🚫 This Roll Number / ID has already submitted the exam! Multiple attempts are not allowed.");
+                return;
+            }
+
+            currentRollNo = rollNo;
+
+            document.getElementById('instructions-screen').style.display = 'none';
+            document.getElementById('quiz-main-section').style.display = 'block';
+            document.getElementById('video-container').style.display = 'block';
+
+            isExamStarted = true;
+            loadQuiz();
+            startTimer();
+            setTimeout(initCameraAIAndAudio, 100);
+        }
+
+        function loadQuiz() {
+            const quizContainer = document.getElementById('quiz-container');
+            quizData.forEach((item, index) => {
+                const questionDiv = document.createElement('div');
+                questionDiv.classList.add('question');
+                questionDiv.innerHTML = `<h3>${item.q}</h3><div class="options">${item.options.map((opt, i) => `<label><input type="radio" name="q${index}" value="${i}" onchange="updateProgress()"> ${opt}</label>`).join('')}</div><div class="explanation" id="exp-${index}"><strong>Answer:</strong> ${item.options[item.ans]} <br><br><strong>Explanation:</strong> ${item.exp}</div>`;
+                quizContainer.appendChild(questionDiv);
+            });
+            updateProgress();
+        }
+
+        function updateProgress() {
+            let attempted = 0;
+            quizData.forEach((item, index) => {
+                const selected = document.querySelector(`input[name="q${index}"]:checked`);
+                if (selected) attempted++;
+            });
+            let remaining = quizData.length - attempted;
+            
+            const attEl = document.getElementById('stat-attempted');
+            const remEl = document.getElementById('stat-remaining');
+            if(attEl) attEl.innerText = attempted;
+            if(remEl) remEl.innerText = remaining;
+        }
+
+        function submitQuiz(typeOfSubmission) {
+            if (isSubmitted || !isExamStarted) return;
+            isSubmitted = true;
+            
+            clearInterval(timerInterval); 
+            if(window.aiInterval) clearInterval(window.aiInterval);
+            if(window.audioInterval) clearInterval(window.audioInterval);
+
+            if(currentRollNo) {
+                let submittedRolls = JSON.parse(localStorage.getItem("submitted_rolls") || "[]");
+                if(!submittedRolls.includes(currentRollNo)) {
+                    submittedRolls.push(currentRollNo);
+                    localStorage.setItem("submitted_rolls", JSON.init ? JSON.stringify(submittedRolls) : JSON.stringify(submittedRolls));
+                }
+            }
+
+            let score = 0, wrong = 0, unattempted = 0, total = quizData.length;
+
+            quizData.forEach((item, index) => {
+                const selected = document.querySelector(`input[name="q${index}"]:checked`);
+                const expDiv = document.getElementById(`exp-${index}`);
+                expDiv.style.display = "block"; 
+
+                if (!selected) { unattempted++; expDiv.style.borderLeftColor = "#f39c12"; expDiv.style.backgroundColor = "#fdf2e9"; } 
+                else if (parseInt(selected.value) === item.ans) { score++; expDiv.style.borderLeftColor = "#1abc9c"; expDiv.style.backgroundColor = "#e8f8f5"; } 
+                else { wrong++; expDiv.style.borderLeftColor = "#e74c3c"; expDiv.style.backgroundColor = "#fdedec"; }
+                
+                document.querySelectorAll(`input[name="q${index}"]`).forEach(opt => opt.disabled = true);
+            });
+
+            const sidebarPanel = document.querySelector('.sidebar-panel');
+            if(sidebarPanel) sidebarPanel.style.display = 'none';
+
+            let percentage = ((score / total) * 100).toFixed(2);
+            let status = percentage >= 50 ? "<span style='color:#27ae60;'><b>PASSED</b></span>" : "<span style='color:#c0392b;'><b>FAILED</b></span>";
+            
+            let logHTML = strikeLogs.length > 0 ? `<ul>${strikeLogs.map(log => `<li>${log}</li>`).join('')}</ul>` : `<span style="color:#27ae60; font-weight:bold;">No security strikes recorded. Clean attempt!</span>`;
+
+            const reportDiv = document.getElementById('result-report');
+            reportDiv.style.display = "block";
+            reportDiv.innerHTML = `
+                <h2>📊 Detailed Final Report</h2>
+                <div style="display:flex; justify-content:space-between; flex-wrap:wrap;">
+                    <div style="flex:1; min-width: 250px;">
+                        <p><strong>Total Questions:</strong> ${total}</p>
+                        <p style="color: #27ae60;"><strong>✅ Correct:</strong> ${score}</p>
+                        <p style="color: #e74c3c;"><strong>❌ Wrong:</strong> ${wrong}</p>
+                        <p style="color: #f39c12;"><strong>⚠️ Unattempted:</strong> ${unattempted}</p>
+                    </div>
+                    <div style="flex:1; min-width: 250px; text-align:right;">
+                        <p><strong>Score:</strong> ${percentage}%</p>
+                        <p><strong>Result:</strong> ${status}</p>
+                        <p><strong>Submitted By:</strong> <u>${typeOfSubmission}</u></p>
+                        <p><strong>Total Strikes:</strong> <span style="color: #e74c3c;">${totalStrikes}</span></p>
+                    </div>
+                </div>
+
+                <div class="log-box">
+                    <strong>📌 Strike Summary by Type:</strong>
+                    <div class="strike-summary">
+                        <div class="strike-badge">Tab Switches: ${strikeCountsByType["Tab Switch / Minimize"]}</div>
+                        <div class="strike-badge">Focus Losses: ${strikeCountsByType["Focus Lost / Click Outside"]}</div>
+                        <div class="strike-badge">Mobile Phones: ${strikeCountsByType["Mobile Phone Detected"]}</div>
+                        <div class="strike-badge">Multiple Persons: ${strikeCountsByType["Multiple Persons Detected"]}</div>
+                        <div class="strike-badge">Hidden From Camera: ${strikeCountsByType["Hidden From Camera (Missing)"]}</div>
+                        <div class="strike-badge">Loud Sound: ${strikeCountsByType["Loud Sound / Noise Detected"]}</div>
+                    </div>
+                    <br>
+                    <strong>📋 Chronological Strike Logs:</strong>
+                    ${logHTML}
+                </div>
+            `;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            
+            if (window.mediaStream) window.mediaStream.getTracks().forEach(track => track.stop());
+        }
+
+        function recordStrike(strikeType) {
+            if (isSubmitted || !isExamStarted) return;
+            
+            let now = Date.now();
+            if (now - lastStrikeTime < 600) return; 
+            lastStrikeTime = now;
+
+            totalStrikes++;
+            strikeCountsByType[strikeType]++;
+            let timestamp = new Date().toLocaleTimeString();
+            strikeLogs.push(`[${timestamp}] Type: <b>${strikeType}</b>`);
+            
+            const strikeEl = document.getElementById('stat-strikes');
+            if(strikeEl) strikeEl.innerText = totalStrikes;
+        }
+
+        document.addEventListener("visibilitychange", () => {
+            if (document.hidden) recordStrike("Tab Switch / Minimize");
+        });
+        window.addEventListener("blur", () => {
+            recordStrike("Focus Lost / Click Outside");
+        });
+
+        async function initCameraAIAndAudio() {
+            try {
+                window.mediaStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                const videoElement = document.getElementById('webcam');
+                videoElement.srcObject = window.mediaStream;
+
+                // Setup Audio Analysis
+                try {
+                    let audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    let analyser = audioContext.createAnalyser();
+                    let microphone = audioContext.createMediaStreamSource(window.mediaStream);
+                    microphone.connect(analyser);
+                    analyser.fftSize = 256;
+                    let dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+                    window.audioInterval = setInterval(() => {
+                        if (isSubmitted) return;
+                        analyser.getByteFrequencyData(dataArray);
+                        let sum = 0;
+                        for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
+                        let avg = sum / dataArray.length;
+                        if (avg > 45 && (window.lastSoundLog || 0) < Date.now() - 3000) {
+                            window.lastSoundLog = Date.now();
+                            recordStrike("Loud Sound / Noise Detected");
+                        }
+                    }, 800);
+                } catch(e) {
+                    console.log("Audio analysis init error:", e);
+                }
+
+                // Setup AI Object Detection (500ms ultra-fast scanning)
+                cocoSsd.load().then(aiModel => {
+                    const canvas = document.getElementById('ai-canvas');
+                    const ctx = canvas.getContext('2d');
+
+                    window.aiInterval = setInterval(async () => {
+                        if (isSubmitted || !videoElement || videoElement.readyState !== 4) return;
+                        
+                        canvas.width = videoElement.videoWidth || 180; 
+                        canvas.height = videoElement.videoHeight || 135;
+                        
+                        const predictions = await aiModel.detect(videoElement);
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                        let phoneFound = false;
+                        let personCount = 0;
+
+                        predictions.forEach(pred => {
+                            if (pred.class === 'cell phone' || pred.class === 'phone') phoneFound = true;
+                            if (pred.class === 'person') personCount++;
+
+                            ctx.beginPath(); 
+                            ctx.rect(...pred.bbox); 
+                            ctx.lineWidth = 3;
+                            ctx.strokeStyle = (pred.class === 'cell phone' || pred.class === 'phone') ? '#e74c3c' : '#2ecc71';
+                            ctx.fillStyle = ctx.strokeStyle;
+                            ctx.stroke();
+                            ctx.font = 'bold 10px Arial';
+                            ctx.fillText(`${pred.class}`, pred.bbox[0], pred.bbox[1] > 12 ? pred.bbox[1] - 3 : 12);
+                        });
+
+                        // 1. Missing from camera (500ms check)
+                        if (personCount === 0 && (window.lastMissingLog || 0) < Date.now() - 1000) {
+                            window.lastMissingLog = Date.now();
+                            recordStrike("Hidden From Camera (Missing)");
+                        }
+                        // 2. Multiple persons detected (500ms check)
+                        if (personCount > 1 && (window.lastPersonLog || 0) < Date.now() - 1000) {
+                            window.lastPersonLog = Date.now();
+                            recordStrike("Multiple Persons Detected");
+                        }
+                        // 3. Mobile phone detected
+                        if (phoneFound && (window.lastPhoneLog || 0) < Date.now() - 2000) {
+                            window.lastPhoneLog = Date.now();
+                            recordStrike("Mobile Phone Detected");
+                        }
+                    }, 500); 
+                }).catch(e => {
+                    console.log("AI model load failed:", e);
+                });
+            } catch (err) {
+                console.log("Camera/Mic access error:", err);
+            }
+        }
+
+        let timeLeft = 60 * 60; 
+        let timerInterval;
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                if (timeLeft <= 0) { 
+                    clearInterval(timerInterval); 
+                    alert("⏰ Time is up!"); 
+                    submitQuiz("System Auto-Submit (Time Limit)"); 
+                }
+                timeLeft--; 
+                let m = Math.floor(timeLeft / 60); 
+                let s = timeLeft % 60;
+                const timerEl = document.getElementById('timer');
+                if(timerEl) timerEl.innerText = `${m}:${s < 10 ? '0' : ''}${s}`;
+            }, 1000);
+        }
+    </script>
+</body>
+</html>
