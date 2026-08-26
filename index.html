@@ -67,7 +67,7 @@
 
         <h3 style="color: #e74c3c;">⚠️ Security Guidelines & Monitoring:</h3>
         <ul class="rules-list">
-            <li><strong>AI Proctoring:</strong> Camera, microphone (sound detection), tab switches, and focus are silently monitored in milliseconds.</li>
+            <li><strong>AI Proctoring:</strong> Camera, microphone (sound detection), multi-person detection, and focus are silently monitored in milliseconds.</li>
             <li><strong>Live Dashboard:</strong> Track your remaining time, attempted questions, and live strikes in the side panel.</li>
             <li><strong>Submission:</strong> Use the Submit button in the sidebar when you finish.</li>
         </ul>
@@ -329,7 +329,7 @@
             if (isSubmitted || !isExamStarted) return;
             
             let now = Date.now();
-            if (now - lastStrikeTime < 1000) return; // Cooldown reduced to 1 second for faster response
+            if (now - lastStrikeTime < 600) return; // Ultra-fast 600ms cooldown for milliseconds response
             lastStrikeTime = now;
 
             totalStrikes++;
@@ -369,16 +369,16 @@
                         let sum = 0;
                         for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
                         let avg = sum / dataArray.length;
-                        if (avg > 45 && (window.lastSoundLog || 0) < Date.now() - 5000) {
+                        if (avg > 45 && (window.lastSoundLog || 0) < Date.now() - 3000) {
                             window.lastSoundLog = Date.now();
                             recordStrike("Loud Sound / Noise Detected");
                         }
-                    }, 1000);
+                    }, 800);
                 } catch(e) {
                     console.log("Audio analysis init error:", e);
                 }
 
-                // Setup AI Object Detection (Fast 600ms interval for milliseconds response)
+                // Setup AI Object Detection (500ms ultra-fast scanning)
                 cocoSsd.load().then(aiModel => {
                     const canvas = document.getElementById('ai-canvas');
                     const ctx = canvas.getContext('2d');
@@ -409,22 +409,22 @@
                             ctx.fillText(`${pred.class}`, pred.bbox[0], pred.bbox[1] > 12 ? pred.bbox[1] - 3 : 12);
                         });
 
-                        // Instant missing check (reduced cooldown to 2 seconds for milliseconds feel)
-                        if (personCount === 0 && (window.lastMissingLog || 0) < Date.now() - 2500) {
+                        // 1. Missing from camera (500ms check)
+                        if (personCount === 0 && (window.lastMissingLog || 0) < Date.now() - 1000) {
                             window.lastMissingLog = Date.now();
                             recordStrike("Hidden From Camera (Missing)");
                         }
-                        // Multiple persons check
-                        if (personCount > 1 && (window.lastPersonLog || 0) < Date.now() - 4000) {
+                        // 2. Multiple persons detected (Fixed & set to 500ms response)
+                        if (personCount > 1 && (window.lastPersonLog || 0) < Date.now() - 1500) {
                             window.lastPersonLog = Date.now();
                             recordStrike("Multiple Persons Detected");
                         }
-                        // Phone check
-                        if (phoneFound && (window.lastPhoneLog || 0) < Date.now() - 4000) {
+                        // 3. Mobile phone detected
+                        if (phoneFound && (window.lastPhoneLog || 0) < Date.now() - 2000) {
                             window.lastPhoneLog = Date.now();
                             recordStrike("Mobile Phone Detected");
                         }
-                    }, 600); // 600ms ultra-fast scanning
+                    }, 500); // Exact 500ms speed as requested
                 }).catch(e => {
                     console.log("AI model load failed:", e);
                 });
