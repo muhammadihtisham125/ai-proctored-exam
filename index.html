@@ -22,6 +22,7 @@
         .btn-start:hover { background: #2471a3; }
 
         #quiz-main-section { display: none; }
+        #ai-status { background: #f39c12; color: white; padding: 5px 15px; border-radius: 5px; font-size: 14px; font-weight: bold; }
         .report-card { display: none; background: #fff; padding: 20px; margin-bottom: 20px; border-radius: 8px; border-top: 5px solid #3498db; }
         .report-card h2 { margin-top: 0; color: #2c3e50; text-align: center; border-bottom: 2px solid #eee; padding-bottom: 10px; }
         .report-card p { font-size: 17px; margin: 8px 0; }
@@ -39,8 +40,9 @@
         .explanation { display: none; padding: 10px; margin-top: 10px; border-left: 4px solid; font-size: 15px; border-radius: 4px; color: #333; }
         #warnings { color: #e67e22; font-weight: bold; text-align: center; margin-top: 10px; margin-bottom: 20px; font-size: 16px; }
         
-        #video-container { display: none; position: fixed; bottom: 10px; right: 10px; width: 160px; height: 120px; background: black; border: 3px solid #27ae60; border-radius: 8px; overflow: hidden; z-index: 1000; }
-        #webcam { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
+        #video-container { display: none; position: fixed; bottom: 10px; right: 10px; width: 200px; height: 150px; background: black; border: 3px solid #27ae60; border-radius: 8px; overflow: hidden; z-index: 1000; box-shadow: 0px 4px 15px rgba(0,0,0,0.5); }
+        #webcam, #ai-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
+        #ai-canvas { z-index: 1001; }
     </style>
 </head>
 <body>
@@ -57,8 +59,8 @@
 
         <h3 style="color: #e74c3c;">⚠️ Security Guidelines & Monitoring:</h3>
         <ul class="rules-list">
-            <li><strong>Silent Strike Logging:</strong> Tab switches, window focus loss, and AI camera events are recorded as specific strike types for your final evaluation report.</li>
-            <li><strong>No Interruption:</strong> The exam will not block or auto-submit due to strikes; you can complete it freely.</li>
+            <li><strong>Smart Strike Logging:</strong> Tab switches, window focus changes, and AI phone detection are cleanly logged without double-counting.</li>
+            <li><strong>No Interruption:</strong> The exam proceeds smoothly without forced blocks or auto-submits.</li>
             <li><strong>Submission:</strong> Click "Submit Exam" at the bottom when you finish.</li>
         </ul>
 
@@ -77,6 +79,7 @@
     <div id="quiz-main-section">
         <div class="header">
             <h2>Data Science Final Exam</h2>
+            <div id="ai-status">🤖 Loading AI...</div>
             <div id="timer">60:00</div>
         </div>
 
@@ -89,6 +92,7 @@
     <!-- CAMERA STREAM -->
     <div id="video-container">
         <video id="webcam" autoplay playsinline muted></video>
+        <canvas id="ai-canvas"></canvas>
     </div>
 
     <script>
@@ -170,6 +174,7 @@
             "Mobile Phone Detected": 0,
             "Multiple Persons Detected": 0
         };
+        let lastStrikeTime = 0; // Cooldown to prevent double counting
 
         function startExam() {
             const studentName = document.getElementById('student_name').value;
@@ -273,6 +278,12 @@
 
         function recordStrike(strikeType) {
             if (isSubmitted || !isExamStarted) return;
+            
+            let now = Date.now();
+            // Cooldown of 1.5 seconds to prevent double logging when visibilitychange & blur fire together
+            if (now - lastStrikeTime < 1500) return; 
+            lastStrikeTime = now;
+
             totalStrikes++;
             strikeCountsByType[strikeType]++;
             let timestamp = new Date().toLocaleTimeString();
@@ -281,7 +292,7 @@
             if(warnEl) warnEl.innerText = `Total Strikes Recorded: ${totalStrikes}`;
         }
 
-        // Event Listeners for Silent Tracking
+        // Event Listeners with Cooldown Protection
         document.addEventListener("visibilitychange", () => {
             if (document.hidden) recordStrike("Tab Switch / Minimize");
         });
@@ -295,20 +306,47 @@
                 const videoElement = document.getElementById('webcam');
                 videoElement.srcObject = window.mediaStream;
 
+                const aiStatus = document.getElementById('ai-status');
+                if(aiStatus) aiStatus.innerText = "🤖 Loading AI Model...";
+
                 cocoSsd.load().then(aiModel => {
+                    if(aiStatus) {
+                        aiStatus.innerText = "🟢 AI Active & Monitoring";
+                        aiStatus.style.background = "#27ae60";
+                    }
+
+                    const canvas = document.getElementById('ai-canvas');
+                    const ctx = canvas.getContext('2d');
+
                     window.aiInterval = setInterval(async () => {
                         if (isSubmitted || !videoElement || videoElement.readyState !== 4) return;
+                        
+                        canvas.width = videoElement.videoWidth || 220; 
+                        canvas.height = videoElement.videoHeight || 165;
+                        
                         const predictions = await aiModel.detect(videoElement);
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
 
                         let phoneFound = false;
                         let personCount = 0;
 
                         predictions.forEach(pred => {
-                            if (pred.class === 'cell phone') phoneFound = true;
+                            // Check for phone or cell phone class name
+                            if (pred.class === 'cell phone' || pred.class === 'phone') phoneFound = true;
                             if (pred.class === 'person') personCount++;
+
+                            // Draw detection box on canvas
+                            ctx.beginPath(); 
+                            ctx.rect(...pred.bbox); 
+                            ctx.lineWidth = 3;
+                            ctx.strokeStyle = (pred.class === 'cell phone' || pred.class === 'phone') ? '#e74c3c' : '#2ecc71';
+                            ctx.fillStyle = ctx.strokeStyle;
+                            ctx.stroke();
+                            ctx.font = 'bold 12px Arial';
+                            ctx.fillText(`${pred.class} (${Math.round(pred.score * 100)}%)`, pred.bbox[0], pred.bbox[1] > 15 ? pred.bbox[1] - 5 : 15);
                         });
 
-                        // Throttle logging for continuous AI frames (e.g., once every 10 seconds per category)
+                        // Log phone detection (with 10 seconds interval so it doesn't spam)
                         if (phoneFound && (window.lastPhoneLog || 0) < Date.now() - 10000) {
                             window.lastPhoneLog = Date.now();
                             recordStrike("Mobile Phone Detected");
@@ -317,12 +355,15 @@
                             window.lastPersonLog = Date.now();
                             recordStrike("Multiple Persons Detected");
                         }
-                    }, 3000);
+                    }, 1500);
                 }).catch(e => {
                     console.log("AI model load failed:", e);
+                    if(aiStatus) aiStatus.innerText = "🟢 Camera Active (AI Standby)";
                 });
             } catch (err) {
                 console.log("Camera access error:", err);
+                const aiStatus = document.getElementById('ai-status');
+                if(aiStatus) aiStatus.innerText = "⚠️ Camera Error";
             }
         }
 
