@@ -67,9 +67,9 @@
 
         <h3 style="color: #e74c3c;">⚠️ Security Guidelines & Monitoring:</h3>
         <ul class="rules-list">
-            <li><strong>Single Attempt Rule:</strong> You can submit this exam only once using your Roll Number / ID. Multiple attempts are blocked.</li>
-            <li><strong>AI Proctoring:</strong> Camera, microphone, multi-person detection, and focus are silently monitored.</li>
-            <li><strong>Live Dashboard:</strong> Track your remaining time, attempted questions, and live strikes in the side panel.</li>
+            <li><strong>3 Attempts Allowed:</strong> Aap is exam ko maximum 3 baar submit kar sakte hain. Har submission par aapko bataya jayega ke yeh aapki kaunsi attempt hai.</li>
+            <li><strong>AI Proctoring:</strong> Camera, microphone, multi-person detection, aur focus ko silently monitor kiya jata hai.</li>
+            <li><strong>Submission:</strong> Apna kaam mukammal kar ke side panel se Submit Exam par click karein.</li>
         </ul>
 
         <div style="margin: 20px 0; background: #eaf2f8; padding: 15px; border-radius: 8px;" id="input-form-box">
@@ -129,15 +129,7 @@
 
     <script>
         window.onload = () => {
-            const submittedRolls = JSON.parse(localStorage.getItem("submitted_rolls") || "[]");
-            if(submittedRolls.length > 0) {
-                document.getElementById('input-form-box').innerHTML = `
-                    <div style="text-align: center; color: #c0392b; font-weight: bold; font-size: 18px; padding: 20px;">
-                        🚫 Exam Already Submitted! <br><br>
-                        <span style="color: #333; font-size: 15px;">You have already attempted and submitted this exam from this browser. Multiple submissions are not allowed.</span>
-                    </div>
-                `;
-            }
+            // Check overall attempts on load just to show general info if needed
         };
 
         const quizData = [
@@ -232,9 +224,11 @@
                 return;
             }
 
-            let submittedRolls = JSON.parse(localStorage.getItem("submitted_rolls") || "[]");
-            if (submittedRolls.includes(rollNo)) {
-                alert("🚫 This Roll Number / ID has already submitted the exam! Multiple attempts are not allowed.");
+            let attemptsData = JSON.parse(localStorage.getItem("exam_attempts") || "{}");
+            let currentAttempts = attemptsData[rollNo] || 0;
+
+            if (currentAttempts >= 3) {
+                alert("🚫 Aap is Roll Number par apni 3 attempts mukammal kar chuke hain. Mazeed attempt allow nahi hai!");
                 return;
             }
 
@@ -283,11 +277,19 @@
             if(window.aiInterval) clearInterval(window.aiInterval);
             if(window.audioInterval) clearInterval(window.audioInterval);
 
+            let attemptMessage = "";
             if(currentRollNo) {
-                let submittedRolls = JSON.parse(localStorage.getItem("submitted_rolls") || "[]");
-                if(!submittedRolls.includes(currentRollNo)) {
-                    submittedRolls.push(currentRollNo);
-                    localStorage.setItem("submitted_rolls", JSON.init ? JSON.stringify(submittedRolls) : JSON.stringify(submittedRolls));
+                let attemptsData = JSON.parse(localStorage.getItem("exam_attempts") || "{}");
+                let currentAttempts = (attemptsData[currentRollNo] || 0) + 1;
+                attemptsData[currentRollNo] = currentAttempts;
+                localStorage.setItem("exam_attempts", JSON.stringify(attemptsData));
+
+                if(currentAttempts === 1) {
+                    attemptMessage = "Yeh aapki 1st attempt thi.";
+                } else if(currentAttempts === 2) {
+                    attemptMessage = "Yeh aapki 2nd attempt thi.";
+                } else if(currentAttempts === 3) {
+                    attemptMessage = "Yeh aapki 3rd aur aakhri (last) attempt thi. Ab aap mazeed test nahi de sakte.";
                 }
             }
 
@@ -317,6 +319,9 @@
             reportDiv.style.display = "block";
             reportDiv.innerHTML = `
                 <h2>📊 Detailed Final Report</h2>
+                <div style="background: #eaf2f8; padding: 12px; border-radius: 6px; margin-bottom: 15px; font-weight: bold; color: #2980b9; text-align: center;">
+                    📌 ${attemptMessage}
+                </div>
                 <div style="display:flex; justify-content:space-between; flex-wrap:wrap;">
                     <div style="flex:1; min-width: 250px;">
                         <p><strong>Total Questions:</strong> ${total}</p>
