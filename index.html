@@ -11,9 +11,20 @@
 
     <style>
         body { font-family: Arial, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; color: #333; }
-        .header { text-align: center; background: #2c3e50; color: white; padding: 15px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
-        .container { max-width: 800px; margin: 20px auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0px 4px 15px rgba(0,0,0,0.1); }
+        .header { text-align: center; background: #2c3e50; color: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
         
+        /* Main Layout with Sidebar */
+        .exam-layout { display: flex; max-width: 1200px; margin: 0 auto; gap: 20px; align-items: flex-start; }
+        .quiz-area { flex: 3; background: white; padding: 30px; border-radius: 8px; box-shadow: 0px 4px 15px rgba(0,0,0,0.1); }
+        
+        /* Sidebar Panel */
+        .sidebar-panel { flex: 1; background: white; padding: 20px; border-radius: 8px; box-shadow: 0px 4px 15px rgba(0,0,0,0.1); position: sticky; top: 20px; }
+        .sidebar-panel h3 { margin-top: 0; color: #2c3e50; border-bottom: 2px solid #eee; padding-bottom: 10px; font-size: 18px; text-align: center; }
+        .stat-box { background: #f8f9f9; padding: 12px; border-radius: 6px; margin-bottom: 12px; font-size: 15px; display: flex; justify-content: space-between; font-weight: bold; border-left: 4px solid #2980b9; }
+        .stat-box span { color: #2c3e50; }
+
+        /* Instructions Screen */
+        .container { max-width: 800px; margin: 20px auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0px 4px 15px rgba(0,0,0,0.1); }
         #instructions-screen h2 { color: #2c3e50; text-align: center; font-size: 24px; margin-top: 0; border-bottom: 2px solid #ddd; padding-bottom: 10px; }
         .info-grid { display: flex; justify-content: space-between; background: #eaf2f8; padding: 15px; border-radius: 8px; margin: 20px 0; font-weight: bold; font-size: 16px; color: #2980b9; flex-wrap: wrap; gap: 10px; }
         .rules-list { background: #fdf2e9; border-left: 5px solid #e74c3c; padding: 15px 15px 15px 35px; border-radius: 5px; font-size: 16px; margin-bottom: 25px; }
@@ -22,25 +33,22 @@
         .btn-start:hover { background: #2471a3; }
 
         #quiz-main-section { display: none; }
-        #ai-status { background: #f39c12; color: white; padding: 5px 15px; border-radius: 5px; font-size: 14px; font-weight: bold; }
-        .report-card { display: none; background: #fff; padding: 20px; margin-bottom: 20px; border-radius: 8px; border-top: 5px solid #3498db; }
+        .report-card { background: #fff; padding: 20px; margin-bottom: 20px; border-radius: 8px; border-top: 5px solid #3498db; }
         .report-card h2 { margin-top: 0; color: #2c3e50; text-align: center; border-bottom: 2px solid #eee; padding-bottom: 10px; }
-        .report-card p { font-size: 17px; margin: 8px 0; }
         .log-box { background: #fdf2e9; padding: 15px; border-left: 4px solid #e74c3c; margin-top: 15px; font-size: 14px; border-radius: 4px; }
         .log-box ul { margin: 8px 0; padding-left: 20px; color: #c0392b; font-weight: bold; }
-        .strike-summary { display: flex; gap: 15px; margin-top: 10px; flex-wrap: wrap; }
-        .strike-badge { background: #fadbd8; color: #78281f; padding: 5px 10px; border-radius: 4px; font-size: 13px; font-weight: bold; }
+        .strike-summary { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+        .strike-badge { background: #fadbd8; color: #78281f; padding: 5px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
         
         .question h3 { color: #000000; font-weight: 900; font-size: 18px; margin-top: 0; }
         .options label { display: block; margin: 10px 0; cursor: pointer; color: #000000; font-weight: bold; font-size: 16px; }
         .question { margin-bottom: 25px; padding-bottom: 15px; border-bottom: 2px solid #ddd; }
-        #timer { font-size: 20px; font-weight: bold; color: #e74c3c; background: white; padding: 5px 15px; border-radius: 5px; }
-        .btn-submit { background: #27ae60; color: white; border: none; padding: 12px 20px; font-size: 18px; border-radius: 5px; cursor: pointer; width: 100%; margin-top: 20px; font-weight: bold; }
+        
+        .btn-submit { background: #27ae60; color: white; border: none; padding: 12px 20px; font-size: 16px; border-radius: 5px; cursor: pointer; width: 100%; font-weight: bold; margin-top: 15px; box-shadow: 0px 3px 5px rgba(0,0,0,0.1); }
         .btn-submit:hover { background: #2ecc71; }
         .explanation { display: none; padding: 10px; margin-top: 10px; border-left: 4px solid; font-size: 15px; border-radius: 4px; color: #333; }
-        #warnings { color: #e67e22; font-weight: bold; text-align: center; margin-top: 10px; margin-bottom: 20px; font-size: 16px; }
         
-        #video-container { display: none; position: fixed; bottom: 10px; right: 10px; width: 200px; height: 150px; background: black; border: 3px solid #27ae60; border-radius: 8px; overflow: hidden; z-index: 1000; box-shadow: 0px 4px 15px rgba(0,0,0,0.5); }
+        #video-container { display: none; position: fixed; bottom: 10px; right: 10px; width: 180px; height: 135px; background: black; border: 3px solid #27ae60; border-radius: 8px; overflow: hidden; z-index: 1000; box-shadow: 0px 4px 15px rgba(0,0,0,0.5); }
         #webcam, #ai-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
         #ai-canvas { z-index: 1001; }
     </style>
@@ -59,9 +67,9 @@
 
         <h3 style="color: #e74c3c;">⚠️ Security Guidelines & Monitoring:</h3>
         <ul class="rules-list">
-            <li><strong>Smart Strike Logging:</strong> Tab switches, window focus loss, and AI object detection (Phones/Multiple Persons) are cleanly logged.</li>
-            <li><strong>No Interruption:</strong> The exam proceeds smoothly without forced blocks or auto-submits.</li>
-            <li><strong>Submission:</strong> Click "Submit Exam" at the bottom when you finish.</li>
+            <li><strong>AI Proctoring:</strong> Camera, microphone (sound detection), tab switches, and focus are silently monitored.</li>
+            <li><strong>Live Dashboard:</strong> You can track your remaining time, attempted questions, and live strikes in the side panel.</li>
+            <li><strong>Submission:</strong> Use the Submit button in the sidebar or at the bottom when finished.</li>
         </ul>
 
         <div style="margin: 20px 0; background: #eaf2f8; padding: 15px; border-radius: 8px;">
@@ -75,18 +83,42 @@
         <button class="btn-start" onclick="startExam()">I Understand & Start Exam</button>
     </div>
 
-    <!-- QUIZ SCREEN -->
+    <!-- QUIZ SCREEN WITH SIDEBAR LAYOUT -->
     <div id="quiz-main-section">
         <div class="header">
-            <h2>Data Science Final Exam</h2>
-            <div id="ai-status">🤖 Loading AI...</div>
-            <div id="timer">60:00</div>
+            <h2>Data Science Final Exam - Live Proctored Session</h2>
         </div>
 
-        <div id="warnings">Total Strikes Recorded: 0</div>
+        <div class="exam-layout">
+            <!-- Left Side: MCQs Container -->
+            <div class="quiz-area">
+                <div class="container report-card" id="result-report" style="display:none;"></div>
+                <div id="quiz-container"></div>
+            </div>
 
-        <div class="container report-card" id="result-report"></div>
-        <div class="container" id="quiz-container"></div>
+            <!-- Right Side: Sticky Control & Stats Panel -->
+            <div class="sidebar-panel">
+                <h3>📊 Live Exam Status</h3>
+                
+                <div class="stat-box" style="border-left-color: #e74c3c;">
+                    ⏱️ Timer: <span id="timer" style="color: #e74c3c;">60:00</span>
+                </div>
+                
+                <div class="stat-box" style="border-left-color: #27ae60;">
+                    ✅ Attempted: <span id="stat-attempted">0</span> / 60
+                </div>
+                
+                <div class="stat-box" style="border-left-color: #f39c12;">
+                    ⏳ Remaining: <span id="stat-remaining">60</span>
+                </div>
+                
+                <div class="stat-box" style="border-left-color: #c0392b;">
+                    ⚠️ Total Strikes: <span id="stat-strikes" style="color: #c0392b;">0</span>
+                </div>
+
+                <button class="btn-submit" onclick="submitQuiz('Manual (Student clicked Submit)')">Submit Exam</button>
+            </div>
+        </div>
     </div>
 
     <!-- CAMERA STREAM -->
@@ -172,7 +204,9 @@
             "Tab Switch / Minimize": 0,
             "Focus Lost / Click Outside": 0,
             "Mobile Phone Detected": 0,
-            "Multiple Persons Detected": 0
+            "Multiple Persons Detected": 0,
+            "Hidden From Camera (Missing)": 0,
+            "Loud Sound / Noise Detected": 0
         };
         let lastStrikeTime = 0;
 
@@ -192,7 +226,7 @@
             isExamStarted = true;
             loadQuiz();
             startTimer();
-            setTimeout(initCameraAndAI, 100);
+            setTimeout(initCameraAIAndAudio, 100);
         }
 
         function loadQuiz() {
@@ -200,14 +234,24 @@
             quizData.forEach((item, index) => {
                 const questionDiv = document.createElement('div');
                 questionDiv.classList.add('question');
-                questionDiv.innerHTML = `<h3>${item.q}</h3><div class="options">${item.options.map((opt, i) => `<label><input type="radio" name="q${index}" value="${i}"> ${opt}</label>`).join('')}</div><div class="explanation" id="exp-${index}"><strong>Answer:</strong> ${item.options[item.ans]} <br><br><strong>Explanation:</strong> ${item.exp}</div>`;
+                questionDiv.innerHTML = `<h3>${item.q}</h3><div class="options">${item.options.map((opt, i) => `<label><input type="radio" name="q${index}" value="${i}" onchange="updateProgress()"> ${opt}</label>`).join('')}</div><div class="explanation" id="exp-${index}"><strong>Answer:</strong> ${item.options[item.ans]} <br><br><strong>Explanation:</strong> ${item.exp}</div>`;
                 quizContainer.appendChild(questionDiv);
             });
-            const submitBtn = document.createElement('button');
-            submitBtn.innerText = "Submit Exam"; submitBtn.id = "submit-btn";
-            submitBtn.classList.add('btn-submit'); 
-            submitBtn.onclick = () => submitQuiz("Manual (Student clicked Submit)");
-            quizContainer.appendChild(submitBtn);
+            updateProgress();
+        }
+
+        function updateProgress() {
+            let attempted = 0;
+            quizData.forEach((item, index) => {
+                const selected = document.querySelector(`input[name="q${index}"]:checked`);
+                if (selected) attempted++;
+            });
+            let remaining = quizData.length - attempted;
+            
+            const attEl = document.getElementById('stat-attempted');
+            const remEl = document.getElementById('stat-remaining');
+            if(attEl) attEl.innerText = attempted;
+            if(remEl) remEl.innerText = remaining;
         }
 
         function submitQuiz(typeOfSubmission) {
@@ -216,6 +260,7 @@
             
             clearInterval(timerInterval); 
             if(window.aiInterval) clearInterval(window.aiInterval);
+            if(window.audioInterval) clearInterval(window.audioInterval);
 
             localStorage.setItem("exam_submitted", "true");
 
@@ -233,7 +278,10 @@
                 document.querySelectorAll(`input[name="q${index}"]`).forEach(opt => opt.disabled = true);
             });
 
-            document.getElementById('submit-btn').style.display = "none";
+            // Hide sidebar or submit button
+            const sidebarPanel = document.querySelector('.sidebar-panel');
+            if(sidebarPanel) sidebarPanel.style.display = 'none';
+
             let percentage = ((score / total) * 100).toFixed(2);
             let status = percentage >= 50 ? "<span style='color:#27ae60;'><b>PASSED</b></span>" : "<span style='color:#c0392b;'><b>FAILED</b></span>";
             
@@ -265,6 +313,8 @@
                         <div class="strike-badge">Focus Losses: ${strikeCountsByType["Focus Lost / Click Outside"]}</div>
                         <div class="strike-badge">Mobile Phones: ${strikeCountsByType["Mobile Phone Detected"]}</div>
                         <div class="strike-badge">Multiple Persons: ${strikeCountsByType["Multiple Persons Detected"]}</div>
+                        <div class="strike-badge">Hidden From Camera: ${strikeCountsByType["Hidden From Camera (Missing)"]}</div>
+                        <div class="strike-badge">Loud Sound: ${strikeCountsByType["Loud Sound / Noise Detected"]}</div>
                     </div>
                     <br>
                     <strong>📋 Chronological Strike Logs:</strong>
@@ -287,8 +337,9 @@
             strikeCountsByType[strikeType]++;
             let timestamp = new Date().toLocaleTimeString();
             strikeLogs.push(`[${timestamp}] Type: <b>${strikeType}</b>`);
-            const warnEl = document.getElementById('warnings');
-            if(warnEl) warnEl.innerText = `Total Strikes Recorded: ${totalStrikes}`;
+            
+            const strikeEl = document.getElementById('stat-strikes');
+            if(strikeEl) strikeEl.innerText = totalStrikes;
         }
 
         document.addEventListener("visibilitychange", () => {
@@ -298,29 +349,47 @@
             recordStrike("Focus Lost / Click Outside");
         });
 
-        async function initCameraAndAI() {
+        async function initCameraAIAndAudio() {
             try {
-                window.mediaStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+                window.mediaStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
                 const videoElement = document.getElementById('webcam');
                 videoElement.srcObject = window.mediaStream;
 
-                const aiStatus = document.getElementById('ai-status');
-                if(aiStatus) aiStatus.innerText = "🤖 Loading AI Model...";
+                // Setup Audio Analysis for Sound Detection
+                try {
+                    let audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    let analyser = audioContext.createAnalyser();
+                    let microphone = audioContext.createMediaStreamSource(window.mediaStream);
+                    microphone.connect(analyser);
+                    analyser.fftSize = 256;
+                    let dataArray = new Uint8Array(analyser.frequencyBinCount);
 
+                    window.audioInterval = setInterval(() => {
+                        if (isSubmitted) return;
+                        analyser.getByteFrequencyData(dataArray);
+                        let sum = 0;
+                        for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
+                        let avg = sum / dataArray.length;
+                        // Threshold for loud sound / noise
+                        if (avg > 45 && (window.lastSoundLog || 0) < Date.now() - 10000) {
+                            window.lastSoundLog = Date.now();
+                            recordStrike("Loud Sound / Noise Detected");
+                        }
+                    }, 1000);
+                } catch(e) {
+                    console.log("Audio analysis init error:", e);
+                }
+
+                // Setup AI Object Detection (Phones, Multiple Persons, Missing/Hidden)
                 cocoSsd.load().then(aiModel => {
-                    if(aiStatus) {
-                        aiStatus.innerText = "🟢 AI Active & Monitoring";
-                        aiStatus.style.background = "#27ae60";
-                    }
-
                     const canvas = document.getElementById('ai-canvas');
                     const ctx = canvas.getContext('2d');
 
                     window.aiInterval = setInterval(async () => {
                         if (isSubmitted || !videoElement || videoElement.readyState !== 4) return;
                         
-                        canvas.width = videoElement.videoWidth || 200; 
-                        canvas.height = videoElement.videoHeight || 150;
+                        canvas.width = videoElement.videoWidth || 180; 
+                        canvas.height = videoElement.videoHeight || 135;
                         
                         const predictions = await aiModel.detect(videoElement);
                         ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -338,27 +407,31 @@
                             ctx.strokeStyle = (pred.class === 'cell phone' || pred.class === 'phone') ? '#e74c3c' : '#2ecc71';
                             ctx.fillStyle = ctx.strokeStyle;
                             ctx.stroke();
-                            ctx.font = 'bold 12px Arial';
-                            ctx.fillText(`${pred.class} (${Math.round(pred.score * 100)}%)`, pred.bbox[0], pred.bbox[1] > 15 ? pred.bbox[1] - 5 : 15);
+                            ctx.font = 'bold 10px Arial';
+                            ctx.fillText(`${pred.class}`, pred.bbox[0], pred.bbox[1] > 12 ? pred.bbox[1] - 3 : 12);
                         });
 
-                        if (phoneFound && (window.lastPhoneLog || 0) < Date.now() - 10000) {
-                            window.lastPhoneLog = Date.now();
-                            recordStrike("Mobile Phone Detected");
+                        // Check missing from camera (hidden)
+                        if (personCount === 0 && (window.lastMissingLog || 0) < Date.now() - 8000) {
+                            window.lastMissingLog = Date.now();
+                            recordStrike("Hidden From Camera (Missing)");
                         }
-                        if (personCount > 1 && (window.lastPersonLog || 0) < Date.now() - 10000) {
+                        // Check multiple persons
+                        if (personCount > 1 && (window.lastPersonLog || 0) < Date.now() - 8000) {
                             window.lastPersonLog = Date.now();
                             recordStrike("Multiple Persons Detected");
                         }
-                    }, 1500);
+                        // Check phone
+                        if (phoneFound && (window.lastPhoneLog || 0) < Date.now() - 8000) {
+                            window.lastPhoneLog = Date.now();
+                            recordStrike("Mobile Phone Detected");
+                        }
+                    }, 2000);
                 }).catch(e => {
                     console.log("AI model load failed:", e);
-                    if(aiStatus) aiStatus.innerText = "🟢 Camera Active (AI Standby)";
                 });
             } catch (err) {
-                console.log("Camera access error:", err);
-                const aiStatus = document.getElementById('ai-status');
-                if(aiStatus) aiStatus.innerText = "⚠️ Camera Error";
+                console.log("Camera/Mic access error:", err);
             }
         }
 
@@ -374,7 +447,8 @@
                 timeLeft--; 
                 let m = Math.floor(timeLeft / 60); 
                 let s = timeLeft % 60;
-                document.getElementById('timer').innerText = `${m}:${s < 10 ? '0' : ''}${s}`;
+                const timerEl = document.getElementById('timer');
+                if(timerEl) timerEl.innerText = `${m}:${s < 10 ? '0' : ''}${s}`;
             }, 1000);
         }
     </script>
