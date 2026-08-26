@@ -59,7 +59,7 @@
 
         <h3 style="color: #e74c3c;">⚠️ Security Guidelines & Monitoring:</h3>
         <ul class="rules-list">
-            <li><strong>Smart Strike Logging:</strong> Tab switches, window focus changes, and AI phone detection are cleanly logged without double-counting.</li>
+            <li><strong>Smart Strike Logging:</strong> Tab switches, window focus loss, and AI object detection (Phones/Multiple Persons) are cleanly logged.</li>
             <li><strong>No Interruption:</strong> The exam proceeds smoothly without forced blocks or auto-submits.</li>
             <li><strong>Submission:</strong> Click "Submit Exam" at the bottom when you finish.</li>
         </ul>
@@ -174,7 +174,7 @@
             "Mobile Phone Detected": 0,
             "Multiple Persons Detected": 0
         };
-        let lastStrikeTime = 0; // Cooldown to prevent double counting
+        let lastStrikeTime = 0;
 
         function startExam() {
             const studentName = document.getElementById('student_name').value;
@@ -280,7 +280,6 @@
             if (isSubmitted || !isExamStarted) return;
             
             let now = Date.now();
-            // Cooldown of 1.5 seconds to prevent double logging when visibilitychange & blur fire together
             if (now - lastStrikeTime < 1500) return; 
             lastStrikeTime = now;
 
@@ -292,7 +291,6 @@
             if(warnEl) warnEl.innerText = `Total Strikes Recorded: ${totalStrikes}`;
         }
 
-        // Event Listeners with Cooldown Protection
         document.addEventListener("visibilitychange", () => {
             if (document.hidden) recordStrike("Tab Switch / Minimize");
         });
@@ -321,8 +319,8 @@
                     window.aiInterval = setInterval(async () => {
                         if (isSubmitted || !videoElement || videoElement.readyState !== 4) return;
                         
-                        canvas.width = videoElement.videoWidth || 220; 
-                        canvas.height = videoElement.videoHeight || 165;
+                        canvas.width = videoElement.videoWidth || 200; 
+                        canvas.height = videoElement.videoHeight || 150;
                         
                         const predictions = await aiModel.detect(videoElement);
                         ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -331,11 +329,9 @@
                         let personCount = 0;
 
                         predictions.forEach(pred => {
-                            // Check for phone or cell phone class name
                             if (pred.class === 'cell phone' || pred.class === 'phone') phoneFound = true;
                             if (pred.class === 'person') personCount++;
 
-                            // Draw detection box on canvas
                             ctx.beginPath(); 
                             ctx.rect(...pred.bbox); 
                             ctx.lineWidth = 3;
@@ -346,7 +342,6 @@
                             ctx.fillText(`${pred.class} (${Math.round(pred.score * 100)}%)`, pred.bbox[0], pred.bbox[1] > 15 ? pred.bbox[1] - 5 : 15);
                         });
 
-                        // Log phone detection (with 10 seconds interval so it doesn't spam)
                         if (phoneFound && (window.lastPhoneLog || 0) < Date.now() - 10000) {
                             window.lastPhoneLog = Date.now();
                             recordStrike("Mobile Phone Detected");
