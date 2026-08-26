@@ -25,6 +25,8 @@
         .report-card { display: none; background: #fff; padding: 20px; margin-bottom: 20px; border-radius: 8px; border-top: 5px solid #3498db; }
         .report-card h2 { margin-top: 0; color: #2c3e50; text-align: center; border-bottom: 2px solid #eee; padding-bottom: 10px; }
         .report-card p { font-size: 17px; margin: 8px 0; }
+        .log-box { background: #fdf2e9; padding: 10px; border-left: 4px solid #e74c3c; margin-top: 15px; font-size: 14px; }
+        .log-box ul { margin: 5px 0; padding-left: 20px; color: #c0392b; font-weight: bold; }
         .question h3 { color: #000000; font-weight: 900; font-size: 18px; margin-top: 0; }
         .options label { display: block; margin: 10px 0; cursor: pointer; color: #000000; font-weight: bold; font-size: 16px; }
         .question { margin-bottom: 25px; padding-bottom: 15px; border-bottom: 2px solid #ddd; }
@@ -32,6 +34,7 @@
         .btn-submit { background: #27ae60; color: white; border: none; padding: 12px 20px; font-size: 18px; border-radius: 5px; cursor: pointer; width: 100%; margin-top: 20px; font-weight: bold; }
         .btn-submit:hover { background: #2ecc71; }
         .explanation { display: none; padding: 10px; margin-top: 10px; border-left: 4px solid; font-size: 15px; border-radius: 4px; color: #333; }
+        #warnings { color: #e67e22; font-weight: bold; text-align: center; margin-top: 10px; margin-bottom: 20px; font-size: 16px; }
         
         #video-container { display: none; position: fixed; bottom: 10px; right: 10px; width: 160px; height: 120px; background: black; border: 3px solid #27ae60; border-radius: 8px; overflow: hidden; z-index: 1000; }
         #webcam { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
@@ -49,12 +52,10 @@
             <div>🏆 Passing Score: 50%</div>
         </div>
 
-        <h3 style="color: #c0392b;">⚠️ Strict Security Rules (Prohibited Actions):</h3>
+        <h3 style="color: #c0392b;">⚠️ Exam Guidelines & Monitoring:</h3>
         <ul class="rules-list">
-            <li><strong>Camera & Audio:</strong> Camera access is mandatory to start the exam.</li>
-            <li><strong>No Mobile Phones:</strong> Visual AI will monitor the camera feed.</li>
-            <li><strong>Face Tracking:</strong> Your face must remain visible within the camera frame.</li>
-            <li><strong>No Tab Switching:</strong> Changing browser tabs or minimizing windows is tracked.</li>
+            <li><strong>Background Monitoring:</strong> Tab switches and focus changes are silently tracked for review reports. No interruptions will occur.</li>
+            <li><strong>No Restrictions:</strong> Complete your exam freely without any lockouts.</li>
             <li><strong>Submission:</strong> Click "Submit Exam" at the bottom when you finish.</li>
         </ul>
 
@@ -75,6 +76,8 @@
             <h2>Data Science Final Exam</h2>
             <div id="timer">60:00</div>
         </div>
+
+        <div id="warnings">Activity Strikes Recorded: 0</div>
 
         <div class="container report-card" id="result-report"></div>
         <div class="container" id="quiz-container"></div>
@@ -147,7 +150,7 @@
             { q: "52. Ghar ki qeemat (continuous value) predict karna?", options: ["Classification", "Clustering", "Regression", "Dimensionality Reduction"], ans: 2, exp: "Continuous variables Regression hoti hai." },
             { q: "53. Spam ya Not Spam predict karna?", options: ["Classification", "Regression", "Clustering", "Association"], ans: 0, exp: "Categorical prediction Classification hai." },
             { q: "54. Model evaluate karne ke liye data division?", options: ["100% Training", "Train/Test split", "Sirf Test", "Delete kar ke naya data lana"], ans: 1, exp: "Generalization check karne ke liye." },
-            { q: "55. Overfitting kab hoti hai?", options: ["Model dono par bura ho", "Model training rat le aur naye data par fail ho", "Model train na ho", "Data kam ho"], ans: 1, exp: "Model noise ko bhi learn kar leta hai." },
+            { q: "55. Overfitting kab hoti hai?", options: ["Model dono par bura ho", "Model training rat le aur naye data par fail ho", "Model train na ho", "Data kam ho"], ans: 1, exp: "Model noise ko bhi learn kar लेता hai." },
             { q: "56. Konsa Classification metric nahi hai?", options: ["Accuracy", "F1-Score", "Mean Squared Error (MSE)", "Precision"], ans: 2, exp: "MSE Regression metric hai." },
             { q: "57. Scikit-learn mein model train karne ka method?", options: ["model.train()", "model.fit()", "model.predict()", "model.evaluate()"], ans: 1, exp: "fit(X, y) training method hai." },
             { q: "58. K-Means konsi Machine Learning ka algorithm hai?", options: ["Supervised", "Classification", "Unsupervised Clustering", "Reinforcement"], ans: 2, exp: "Unlabeled data ko clusters mein bant'ta hai." },
@@ -157,6 +160,8 @@
 
         let isExamStarted = false;
         let isSubmitted = false; 
+        let strikeCount = 0;
+        let strikeLogs = []; 
 
         function startExam() {
             const studentName = document.getElementById('student_name').value;
@@ -198,6 +203,8 @@
             
             clearInterval(timerInterval); 
 
+            localStorage.setItem("exam_submitted", "true");
+
             let score = 0, wrong = 0, unattempted = 0, total = quizData.length;
 
             quizData.forEach((item, index) => {
@@ -216,13 +223,51 @@
             let percentage = ((score / total) * 100).toFixed(2);
             let status = percentage >= 50 ? "<span style='color:#27ae60;'><b>PASSED</b></span>" : "<span style='color:#c0392b;'><b>FAILED</b></span>";
             
+            let logHTML = strikeLogs.length > 0 ? `<ul>${strikeLogs.map(log => `<li>${log}</li>`).join('')}</ul>` : `<span style="color:#27ae60; font-weight:bold;">No suspicious activity recorded. Clean attempt!</span>`;
+
             const reportDiv = document.getElementById('result-report');
             reportDiv.style.display = "block";
-            reportDiv.innerHTML = `<h2>📊 Detailed Final Report</h2><div style="display:flex; justify-content:space-between; flex-wrap:wrap;"><div style="flex:1; min-width: 250px;"><p><strong>Total Questions:</strong> ${total}</p><p style="color: #27ae60;"><strong>✅ Correct:</strong> ${score}</p><p style="color: #e74c3c;"><strong>❌ Wrong:</strong> ${wrong}</p><p style="color: #f39c12;"><strong>⚠️ Unattempted:</strong> ${unattempted}</p></div><div style="flex:1; min-width: 250px; text-align:right;"><p><strong>Score:</strong> ${percentage}%</p><p><strong>Result:</strong> ${status}</p><p><strong>Submitted By:</strong> <u>${typeOfSubmission}</u></p></div></div>`;
+            reportDiv.innerHTML = `
+                <h2>📊 Detailed Final Report</h2>
+                <div style="display:flex; justify-content:space-between; flex-wrap:wrap;">
+                    <div style="flex:1; min-width: 250px;">
+                        <p><strong>Total Questions:</strong> ${total}</p>
+                        <p style="color: #27ae60;"><strong>✅ Correct:</strong> ${score}</p>
+                        <p style="color: #e74c3c;"><strong>❌ Wrong:</strong> ${wrong}</p>
+                        <p style="color: #f39c12;"><strong>⚠️ Unattempted:</strong> ${unattempted}</p>
+                    </div>
+                    <div style="flex:1; min-width: 250px; text-align:right;">
+                        <p><strong>Score:</strong> ${percentage}%</p>
+                        <p><strong>Result:</strong> ${status}</p>
+                        <p><strong>Submitted By:</strong> <u>${typeOfSubmission}</u></p>
+                    </div>
+                </div>
+                <div class="log-box">
+                    <strong>⚠️ Recorded Security Strikes (Silent Count):</strong>
+                    <br>${logHTML}
+                </div>
+            `;
             window.scrollTo({ top: 0, behavior: 'smooth' });
             
             if (window.mediaStream) window.mediaStream.getTracks().forEach(track => track.stop());
         }
+
+        function recordStrike(reason) {
+            if (isSubmitted || !isExamStarted) return;
+            strikeCount++;
+            let timestamp = new Date().toLocaleTimeString();
+            strikeLogs.push(`[${timestamp}] Strike ${strikeCount}: ${reason}`);
+            const warnEl = document.getElementById('warnings');
+            if(warnEl) warnEl.innerText = `Activity Strikes Recorded: ${strikeCount}`;
+        }
+
+        // Silent background tracking without disturbing the student
+        document.addEventListener("visibilitychange", () => {
+            if (document.hidden) recordStrike("Candidate switched the browser tab or minimized.");
+        });
+        window.addEventListener("blur", () => {
+            recordStrike("Focus lost / Clicked outside the exam window.");
+        });
 
         async function initCamera() {
             try {
