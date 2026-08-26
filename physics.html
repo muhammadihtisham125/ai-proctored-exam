@@ -62,12 +62,12 @@
         <div class="info-grid">
             <div>📄 Total Questions: 60</div>
             <div>⏱️ Time Allowed: 60 Minutes</div>
-            <div>🏆 Passing Score: 75%</div>
+            <div>🏆 Passing Score: 50%</div>
         </div>
 
         <h3 style="color: #e74c3c;">⚠️ Security Guidelines & Monitoring:</h3>
         <ul class="rules-list">
-            <li><strong>3 Attempts Allowed:</strong> Aap is exam ko maximum 3 baar submit kar sakte hain. Har submission par aapko bataya jayega ke yeh aapki kaunsi attempt hai.</li>
+            <li><strong>3 Attempts per Gmail:</strong> Har Gmail address par maximum 3 attempts allow hain.</li>
             <li><strong>AI Proctoring:</strong> Camera, microphone, multi-person detection, aur focus ko silently monitor kiya jata hai.</li>
             <li><strong>Submission:</strong> Apna kaam mukammal kar ke side panel se Submit Exam par click karein.</li>
         </ul>
@@ -76,8 +76,14 @@
             <label><strong>Student Name:</strong></label><br>
             <input type="text" id="student_name" placeholder="Enter your full name" style="width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 5px; border: 1px solid #ccc; box-sizing: border-box;" required>
             
+            <label><strong>Username:</strong></label><br>
+            <input type="text" id="username" placeholder="Enter your Username" style="width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 5px; border: 1px solid #ccc; box-sizing: border-box;" required>
+
             <label><strong>Roll Number / ID:</strong></label><br>
-            <input type="text" id="roll_number" placeholder="Enter your Roll No (e.g. PHY-001)" style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ccc; box-sizing: border-box;" required>
+            <input type="text" id="roll_number" placeholder="Enter your Roll No (e.g. PHY-001)" style="width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 5px; border: 1px solid #ccc; box-sizing: border-box;" required>
+            
+            <label><strong>Gmail Address:</strong></label><br>
+            <input type="email" id="student_email" placeholder="Enter your Gmail address (e.g. user@gmail.com)" style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ccc; box-sizing: border-box;" required>
             
             <button class="btn-start" onclick="startExam()" style="margin-top: 15px;">I Understand & Start Exam</button>
         </div>
@@ -128,10 +134,6 @@
     </div>
 
     <script>
-        window.onload = () => {
-            // Check overall attempts on load just to show general info if needed
-        };
-
         const quizData = [
             { q: "1. What is the least count of a standard Vernier Caliper?", options: ["0.1 cm", "0.01 cm", "0.001 cm", "1 cm"], ans: 1, exp: "The least count of a standard Vernier caliper is 0.01 cm or 0.1 mm." },
             { q: "2. What is the least count of a standard Screw Gauge (Micrometer)?", options: ["0.1 cm", "0.01 cm", "0.001 cm", "0.0001 cm"], ans: 2, exp: "The least count of a screw gauge is 0.001 cm or 0.01 mm." },
@@ -213,26 +215,34 @@
             "Loud Sound / Noise Detected": 0
         };
         let lastStrikeTime = 0;
+        let currentStudentName = "";
+        let currentUsername = "";
         let currentRollNo = "";
+        let currentEmail = "";
 
         function startExam() {
             const studentName = document.getElementById('student_name').value.trim();
+            const username = document.getElementById('username').value.trim();
             const rollNo = document.getElementById('roll_number').value.trim();
+            const email = document.getElementById('student_email').value.trim().toLowerCase();
             
-            if (studentName === "" || rollNo === "") {
-                alert("⚠️ Please enter your Name and Roll Number!");
+            if (studentName === "" || username === "" || rollNo === "" || email === "") {
+                alert("⚠️ Please fill in all fields (Name, Username, Roll Number, and Gmail)!");
                 return;
             }
 
-            let attemptsData = JSON.parse(localStorage.getItem("exam_attempts") || "{}");
-            let currentAttempts = attemptsData[rollNo] || 0;
+            let attemptsData = JSON.parse(localStorage.getItem("exam_attempts_v2") || "{}");
+            let currentAttempts = attemptsData[email] || 0;
 
             if (currentAttempts >= 3) {
-                alert("🚫 Aap is Roll Number par apni 3 attempts mukammal kar chuke hain. Mazeed attempt allow nahi hai!");
+                alert("🚫 Is Gmail address par 3 attempts mukammal ho chuki hain. Aap mazeed test submit nahi kar sakte!");
                 return;
             }
 
+            currentStudentName = studentName;
+            currentUsername = username;
             currentRollNo = rollNo;
+            currentEmail = email;
 
             document.getElementById('instructions-screen').style.display = 'none';
             document.getElementById('quiz-main-section').style.display = 'block';
@@ -278,18 +288,19 @@
             if(window.audioInterval) clearInterval(window.audioInterval);
 
             let attemptMessage = "";
-            if(currentRollNo) {
-                let attemptsData = JSON.parse(localStorage.getItem("exam_attempts") || "{}");
-                let currentAttempts = (attemptsData[currentRollNo] || 0) + 1;
-                attemptsData[currentRollNo] = currentAttempts;
-                localStorage.setItem("exam_attempts", JSON.stringify(attemptsData));
+            let currentAttempts = 1;
+            if(currentEmail) {
+                let attemptsData = JSON.parse(localStorage.getItem("exam_attempts_v2") || "{}");
+                currentAttempts = (attemptsData[currentEmail] || 0) + 1;
+                attemptsData[currentEmail] = currentAttempts;
+                localStorage.setItem("exam_attempts_v2", JSON.stringify(attemptsData));
 
                 if(currentAttempts === 1) {
                     attemptMessage = "Yeh aapki 1st attempt thi.";
                 } else if(currentAttempts === 2) {
                     attemptMessage = "Yeh aapki 2nd attempt thi.";
                 } else if(currentAttempts === 3) {
-                    attemptMessage = "Yeh aapki 3rd aur aakhri (last) attempt thi. Ab aap mazeed test nahi de sakte.";
+                    attemptMessage = "Yeh aapki 3rd aur aakhri (last) attempt thi. Ab aap is Gmail se mazeed test nahi de sakte.";
                 }
             }
 
@@ -320,7 +331,9 @@
             reportDiv.innerHTML = `
                 <h2>📊 Detailed Final Report</h2>
                 <div style="background: #eaf2f8; padding: 12px; border-radius: 6px; margin-bottom: 15px; font-weight: bold; color: #2980b9; text-align: center;">
-                    📌 ${attemptMessage}
+                    📌 Student Name: <u>${currentStudentName}</u> | Username: <u>${currentUsername}</u><br>
+                    Roll No: <u>${currentRollNo}</u> | Gmail: <u>${currentEmail}</u><br>
+                    <span style="color: #e74c3c; margin-top: 5px; display: inline-block;">${attemptMessage}</span>
                 </div>
                 <div style="display:flex; justify-content:space-between; flex-wrap:wrap;">
                     <div style="flex:1; min-width: 250px;">
