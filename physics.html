@@ -60,13 +60,13 @@
 <body>
 
     <!-- INSTRUCTIONS SCREEN -->
-    <div class="container" id="instructions-space" id="instructions-screen">
+    <div class="container" id="instructions-screen">
         <h2>🎓 Agentic Tech Lab - Physics Chapters 1-4 Final Exam</h2>
         
         <div class="info-grid">
             <div>📄 Total Questions: 60</div>
             <div>⏱️ Time Allowed: 60 Minutes</div>
-            <div>🏆 Passing Score: 75%</div>
+            <div>🏆 Passing Score: 50%</div>
         </div>
 
         <h3 style="color: #e74c3c;">⚠️ Security Guidelines & Monitoring:</h3>
@@ -231,11 +231,11 @@
                 return;
             }
 
-            let attemptsData = JSON.parse(localStorage.getItem("exam_attempts_v3") || "{}");
+            let attemptsData = JSON.parse(localStorage.getItem("exam_attempts_v4") || "{}");
             let currentAttempts = attemptsData[email] || 0;
 
             if (currentAttempts >= 3) {
-                alert("🚫 Aap apne test ke teen (3) attempts khatam kar chuke hain, ab mazeed attempt nahi de sakte.");
+                alert("🚫 Aap apne test ke teen attempts khatam kar chuke hain, ab mazeed attempt nahi de sakte.");
                 return;
             }
 
@@ -255,6 +255,7 @@
 
         function loadQuiz() {
             const quizContainer = document.getElementById('quiz-container');
+            quizContainer.innerHTML = "";
             quizData.forEach((item, index) => {
                 const questionDiv = document.createElement('div');
                 questionDiv.classList.add('question');
@@ -289,10 +290,10 @@
             let attemptMessage = "";
             let currentAttempts = 1;
             if(currentEmail) {
-                let attemptsData = JSON.parse(localStorage.getItem("exam_attempts_v3") || "{}");
+                let attemptsData = JSON.parse(localStorage.getItem("exam_attempts_v4") || "{}");
                 currentAttempts = (attemptsData[currentEmail] || 0) + 1;
                 attemptsData[currentEmail] = currentAttempts;
-                localStorage.setItem("exam_attempts_v3", JSON.stringify(attemptsData));
+                localStorage.setItem("exam_attempts_v4", JSON.stringify(attemptsData));
 
                 if(currentAttempts === 1) {
                     attemptMessage = "Yeh aapki 1st attempt thi.";
@@ -317,7 +318,6 @@
                 document.querySelectorAll(`input[name="q${index}"]`).forEach(opt => opt.disabled = true);
             });
 
-            // Hide submit button, show re-attempt button if attempts < 3
             document.getElementById('submit-btn').style.display = 'none';
             if (currentAttempts < 3) {
                 document.getElementById('reattempt-btn').style.display = 'block';
