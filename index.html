@@ -14,22 +14,17 @@
         .header { text-align: center; background: #2c3e50; color: white; padding: 15px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
         .container { max-width: 800px; margin: 20px auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0px 4px 15px rgba(0,0,0,0.1); }
         
-        /* Instructions Screen */
         #instructions-screen h2 { color: #2c3e50; text-align: center; font-size: 24px; margin-top: 0; border-bottom: 2px solid #ddd; padding-bottom: 10px; }
-        .info-grid { display: flex; justify-content: space-between; background: #eaf2f8; padding: 15px; border-radius: 8px; margin: 20px 0; font-weight: bold; font-size: 16px; color: #2980b9; }
+        .info-grid { display: flex; justify-content: space-between; background: #eaf2f8; padding: 15px; border-radius: 8px; margin: 20px 0; font-weight: bold; font-size: 16px; color: #2980b9; flex-wrap: wrap; gap: 10px; }
         .rules-list { background: #fdf2e9; border-left: 5px solid #e74c3c; padding: 15px 15px 15px 35px; border-radius: 5px; font-size: 16px; margin-bottom: 25px; }
         .rules-list li { margin-bottom: 10px; }
-        .btn-start { background: #2980b9; color: white; border: none; padding: 15px 25px; font-size: 18px; border-radius: 5px; cursor: pointer; width: 100%; font-weight: bold; box-shadow: 0px 4px 6px rgba(0,0,0,0.1); transition: 0.3s; }
+        .btn-start { background: #2980b9; color: white; border: none; padding: 15px 25px; font-size: 18px; border-radius: 5px; cursor: pointer; width: 100%; font-weight: bold; box-shadow: 0px 4px 6px rgba(0,0,0,0.1); }
         .btn-start:hover { background: #2471a3; }
 
-        /* Quiz UI (Hidden Initially) */
         #quiz-main-section { display: none; }
-        #ai-status { background: #f39c12; color: white; padding: 5px 15px; border-radius: 5px; font-size: 14px; font-weight: bold; }
         .report-card { display: none; background: #fff; padding: 20px; margin-bottom: 20px; border-radius: 8px; border-top: 5px solid #3498db; }
         .report-card h2 { margin-top: 0; color: #2c3e50; text-align: center; border-bottom: 2px solid #eee; padding-bottom: 10px; }
         .report-card p { font-size: 17px; margin: 8px 0; }
-        .log-box { background: #fdf2e9; padding: 10px; border-left: 4px solid #e74c3c; margin-top: 15px; font-size: 14px; }
-        .log-box ul { margin: 5px 0; padding-left: 20px; color: #c0392b; font-weight: bold; }
         .question h3 { color: #000000; font-weight: 900; font-size: 18px; margin-top: 0; }
         .options label { display: block; margin: 10px 0; cursor: pointer; color: #000000; font-weight: bold; font-size: 16px; }
         .question { margin-bottom: 25px; padding-bottom: 15px; border-bottom: 2px solid #ddd; }
@@ -37,19 +32,16 @@
         .btn-submit { background: #27ae60; color: white; border: none; padding: 12px 20px; font-size: 18px; border-radius: 5px; cursor: pointer; width: 100%; margin-top: 20px; font-weight: bold; }
         .btn-submit:hover { background: #2ecc71; }
         .explanation { display: none; padding: 10px; margin-top: 10px; border-left: 4px solid; font-size: 15px; border-radius: 4px; color: #333; }
-        #warnings { color: red; font-weight: bold; text-align: center; margin-top: 10px; margin-bottom: 20px; font-size: 16px; }
         
-        /* Camera Box */
-        #video-container { display: none; position: fixed; bottom: 10px; right: 10px; width: 220px; height: 165px; background: black; border: 4px solid #e74c3c; border-radius: 8px; overflow: hidden; box-shadow: 0px 4px 15px rgba(0,0,0,0.5); z-index: 1000; }
-        #webcam, #ai-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
-        #ai-canvas { z-index: 1001; }
+        #video-container { display: none; position: fixed; bottom: 10px; right: 10px; width: 160px; height: 120px; background: black; border: 3px solid #27ae60; border-radius: 8px; overflow: hidden; z-index: 1000; }
+        #webcam { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
     </style>
 </head>
 <body>
 
     <!-- INSTRUCTIONS SCREEN -->
     <div class="container" id="instructions-screen">
-        <h2>🎓 Agentic Tech Lab - Physics Chapters 1-4 Exam</h2>
+        <h2>🎓 Agentic Tech Lab - Data Science Final Exam</h2>
         
         <div class="info-grid">
             <div>📄 Total Questions: 60</div>
@@ -59,12 +51,11 @@
 
         <h3 style="color: #c0392b;">⚠️ Strict Security Rules (Prohibited Actions):</h3>
         <ul class="rules-list">
-            <li><strong>Camera & Audio:</strong> Aapko camera aur microphone ka access dena lazmi hai. Iske bina exam start nahi hoga.</li>
-            <li><strong>No Mobile Phones:</strong> Visual AI live camera mein mobile phone detect karega. Frame mein phone aane par strike lag jayegi.</li>
-            <li><strong>Face Tracking:</strong> Exam ke dauran aapka chehra camera frame mein hona chahiye. Kisi aur shakhs ki mojoodgi allow nahi hai.</li>
-            <li><strong>No Tab Switching:</strong> Browser ka tab change karna, minimize karna, ya kisi aur app ko kholna cheating tasawwur hoga.</li>
-            <li><strong>Focus Tracking:</strong> Screen se nazar hata kar idhar-udhar dekhna (clicking outside) strictly prohibited hai.</li>
-            <li><strong>3 Strikes Rule:</strong> Kisi bhi rule ki khilaf warzi par warning (strike) milegi. <strong>3 Strikes</strong> par exam auto-submit hokar FAIL kar diya jayega.</li>
+            <li><strong>Camera & Audio:</strong> Camera access is mandatory to start the exam.</li>
+            <li><strong>No Mobile Phones:</strong> Visual AI will monitor the camera feed.</li>
+            <li><strong>Face Tracking:</strong> Your face must remain visible within the camera frame.</li>
+            <li><strong>No Tab Switching:</strong> Changing browser tabs or minimizing windows is tracked.</li>
+            <li><strong>Submission:</strong> Click "Submit Exam" at the bottom when you finish.</li>
         </ul>
 
         <div style="margin: 20px 0; background: #eaf2f8; padding: 15px; border-radius: 8px;">
@@ -72,7 +63,7 @@
             <input type="text" id="student_name" placeholder="Enter your full name" style="width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 5px; border: 1px solid #ccc; box-sizing: border-box;" required>
             
             <label><strong>Roll Number / ID:</strong></label><br>
-            <input type="text" id="roll_number" placeholder="Enter your Roll No (e.g. PHY-001)" style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ccc; box-sizing: border-box;" required>
+            <input type="text" id="roll_number" placeholder="Enter your Roll No (e.g. CS-001)" style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ccc; box-sizing: border-box;" required>
         </div>
 
         <button class="btn-start" onclick="startExam()">I Understand & Start Exam</button>
@@ -81,12 +72,9 @@
     <!-- QUIZ SCREEN -->
     <div id="quiz-main-section">
         <div class="header">
-            <h2>Physics Chapters 1-4 Exam</h2>
-            <div id="ai-status">🤖 Loading AI Model...</div>
+            <h2>Data Science Final Exam</h2>
             <div id="timer">60:00</div>
         </div>
-
-        <div id="warnings">Warnings: 0 / 3 (Auto-submit after 3 strikes)</div>
 
         <div class="container report-card" id="result-report"></div>
         <div class="container" id="quiz-container"></div>
@@ -95,107 +83,90 @@
     <!-- CAMERA STREAM -->
     <div id="video-container">
         <video id="webcam" autoplay playsinline muted></video>
-        <canvas id="ai-canvas"></canvas>
     </div>
 
     <script>
-        // Check if student has already submitted the exam on this browser
-        window.onload = () => {
-            if (localStorage.getItem("exam_submitted") === "true") {
-                document.getElementById('instructions-screen').innerHTML = `
-                    <h2 style="color: #e74c3c; border:none;">🚫 Exam Already Completed!</h2>
-                    <p style="text-align:center; font-size: 18px; font-weight:bold;">Aap apna exam pehle hi submit kar chuke hain. Multiple attempts allow nahi hain.</p>
-                `;
-            }
-        };
-
-        // 60 MCQs derived from Physics PDF (Chapters 1 to 4 equivalent/Booster Dose)
+        // Original Data Science Questions Array (Weeks 1 to 6)
         const quizData = [
-            // Chapter 3: Motion and Force
-            { q: "1. Displacement-time graph ka slope ya gradient kya represent karta hai?", options: ["Acceleration", "Velocity", "Distance", "Force"], ans: 1, exp: "Displacement-time graph ki slope velocity deti hai." },
-            { q: "2. Distance-time graph kabhi bhi kya nahi ho sakta?", options: ["Positive", "Zero", "Negative", "Constant"], ans: 2, exp: "Distance scalar quantity hai aur yeh kabhi negative nahi ho sakti." },
-            { q: "3. Velocity-time graph ke neechay ka area (Area under v-t graph) kya represent karta hai?", options: ["Acceleration", "Distance traveled", "Momentum", "Force"], ans: 1, exp: "v-t graph ka area distance traveled represent karta hai." },
-            { q: "4. Newton's first law of motion ko aur kya kehte hain?", options: ["Law of Momentum", "Law of Inertia", "Law of Force", "Law of Gravity"], ans: 1, exp: "Newton's first law ko Law of Inertia bhi kaha jata hai." },
-            { q: "5. Linear momentum ko 'quantity of motion' sab se pehle kisne kaha tha?", options: ["Einstein", "Newton", "Galileo", "Coulomb"], ans: 1, exp: "Newton ne linear momentum ko quantity of motion kaha tha." },
-            { q: "6. Rate of change of momentum kis ke barabar hota hai?", options: ["Work done", "Force acting on body", "Acceleration", "Impulse"], ans: 1, exp: "Newton's 2nd law ke mutabiq rate of change of momentum force ke equal hai." },
-            { q: "7. Force aur time ka product kya kehlata hai?", options: ["Work", "Impulse of force", "Power", "Energy"], ans: 1, exp: "Product of Force and time (F x t) impulse kehlata hai." },
-            { q: "8. Elastic collision mein konsi cheezein conserved rehti hain?", options: ["Sirf K.E", "Sirf Momentum", "Dono K.E aur Momentum", "Na K.E na Momentum"], ans: 2, exp: "Elastic collision mein kinetic energy aur momentum dono conserved rehte hain." },
-            { q: "9. Inelastic collision mein kya conserved rehta hai?", options: ["Sirf K.E", "Momentum conserved hota hai lekin K.E nahi", "Dono conserved nahi hote", "Sirf K.E conserved hoti hai"], ans: 1, exp: "Inelastic collision mein momentum conserved rehta hai par K.E loss hoti hai." },
-            { q: "10. Projectile motion kis qisam ki motion hai?", options: ["One dimensional", "Two dimensional under gravity", "Three dimensional", "Circular motion"], ans: 1, exp: "Projectile motion gravity ke tehat two dimensional motion hai." },
-            { q: "11. Projectile ka highest point par vertical component of velocity kya hota hai?", options: ["Maximum", "Minimum", "Zero", "Constant"], ans: 2, exp: "Highest point par vertical velocity zero ho jati hai." },
-            { q: "12. Projectile ka horizontal component of velocity kaisa rehta hai?", options: ["Zero", "Constant", "Increasing", "Decreasing"], ans: 1, exp: "Horizontal component of velocity hamesha constant rehta hai." },
-            { q: "13. Long jump ke liye jumper ko kis angle par jump karna chahiye?", options: ["30 degrees", "45 degrees", "60 degrees", "90 degrees"], ans: 1, exp: "Maximum range ke liye angle 45 degrees hona chahiye." },
-            { q: "14. Do equal, anti-parallel aur non-concurrent forces jo sirf angular acceleration paida karein, kya kehlati hain?", options: ["Torque", "Couple", "Equilibrium", "Momentum"], ans: 1, exp: "Aise pair ko couple kehte hain." },
-            { q: "15. Body ko equilibrium mein rakhne ke liye minimum equal forces kitni chahiye?", options: ["1", "2", "3", "4"], ans: 1, exp: "Minimum 2 equal forces body ko equilibrium mein rakh sakti hain." },
-            { q: "16. Atomic aur nuclear particles ke darmiyan collision kaisi hoti hai?", options: ["Inelastic", "Truly elastic collision", "Plastic", "Incomplete"], ans: 1, exp: "Atomic particles ki collision truly elastic hoti hai." },
-            { q: "17. Agar line of action of force origin se guzray toh torque kya hoga?", options: ["Maximum", "Zero", "Negative", "Infinite"], ans: 1, exp: "Moment arm zero hone ki wajah se torque zero hoga." },
-            { q: "18. Rotational motion mein force ka analogue (mutaradif) kya hai?", options: ["Momentum", "Torque", "Inertia", "Power"], ans: 1, exp: "Rotational motion mein force ki jagah torque hota hai." },
-            { q: "19. Newton's laws kahan valid hote hain?", options: ["Non-inertial frames", "Inertial frames only", "Har jagah", "Vacuum mein"], ans: 1, exp: "Newton's laws sirf inertial frames mein hold karte hain." },
-            { q: "20. Jumper air mein ho toh uski motion kis par depend karti hai?", options: ["Air resistance", "Gravity only", "Mass only", "Speed"], ans: 1, exp: "Free fall ya projectile mein sirf gravity act karti hai." },
+            { q: "1. Python mein variable define karne ke liye kaunsa syntax sahi hai?", options: ["int x = 5", "x = 5", "variable x = 5", "x : 5"], ans: 1, exp: "Python ek dynamically typed language hai." },
+            { q: "2. Jupyter Notebook mein current cell ko run karne ka shortcut kya hai?", options: ["Ctrl + R", "Shift + Enter", "Alt + Run", "Tab + Enter"], ans: 1, exp: "Shift + Enter cell run karta hai." },
+            { q: "3. Git mein nayi repository initialize karne ki command kya hai?", options: ["git start", "git init", "git new", "git repo"], ans: 1, exp: "git init local git repository banata hai." },
+            { q: "4. Python mein 'for' loop ka asal maqsad kya hai?", options: ["Condition check karna", "Error handle karna", "Sequence par iterate karna", "Variable delete karna"], ans: 2, exp: "For loop lists/strings par iteration ke liye hai." },
+            { q: "5. Google Colab Data Science mein kyu mashhoor hai?", options: ["Yeh offline chalta hai", "Free GPU/TPU access deta hai", "Sirf Python 2 chalata hai", "Isme coding mushkil hai"], ans: 1, exp: "Colab free GPU access deta hai." },
+            { q: "6. Python mein Lambda function kya hota hai?", options: ["Bada function", "Anonymous one-liner function", "Built-in module", "Error handling"], ans: 1, exp: "Lambda bina naam ke chote functions hote hain." },
+            { q: "7. GitHub ka main maqsad kya hai?", options: ["Social media for coders", "Code version control aur collaboration", "Video hosting", "Database management"], ans: 1, exp: "GitHub source code version control ke liye hai." },
+            { q: "8. Python list mein naya element add karne ke liye konsa method use hota hai?", options: ["list.add()", "list.insert_end()", "list.append()", "list.push()"], ans: 2, exp: "append() method aakhir mein item add karta hai." },
+            { q: "9. Dictionary mein data kis format mein store hota hai?", options: ["Rows and Columns", "Key-Value pairs", "Index based", "Continuous memory"], ans: 1, exp: "Dictionaries key:value pairs use karti hain." },
+            { q: "10. Git mein 'merge conflict' kab aata hai?", options: ["Internet band hone par", "Jab do log same file ki same line change karein", "Repo delete hone par", "Commit push karne par"], ans: 1, exp: "Git confuse hota hai ke kiski changes rakhe." },
 
-            // Chapter 4: Work and Energy
-            { q: "21. Agar force aur displacement ke darmiyan angle $\theta < 90^\circ$ ho, toh work done kya hoga?", options: ["Negative", "Zero", "Positive", "Infinite"], ans: 2, exp: "Acute angle par work done positive hota hai." },
-            { q: "22. Agar $\theta = 90^\circ$ ho, toh work done kitna hoga?", options: ["1 J", "Positive", "Zero", "Negative"], ans: 2, exp: "Cos(90) = 0 hone ki wajah se work done zero hota hai." },
-            { q: "23. Frictional force kis qisam ki force hai?", options: ["Conservative", "Non-conservative", "Gravitational", "Centripetal"], ans: 1, exp: "Friction non-conservative force hai." },
-            { q: "24. Closed path mein conservative field ke tehat work done kya hota hai?", options: ["Maximum", "Zero", "Positive", "Negative"], ans: 1, exp: "Conservative field mein close path ka total work zero hota hai." },
-            { q: "25. Force aur velocity ka product kya kehlata hai?", options: ["Work", "Energy", "Power", "Momentum"], ans: 2, exp: "P = F . v (Power) kehlata hai." },
-            { q: "26. 1 Horse Power (HP) kitne Watts ke barabar hota hai?", options: ["500 W", "746 W", "1000 W", "550 W"], ans: 1, exp: "1 HP = 746 Watts hota hai." },
-            { q: "27. 1 kWh (kilowatt-hour) kitni energy ke barabar hai?", options: ["1.0 MJ", "3.6 Mega Joule", "7.46 MJ", "100 MJ"], ans: 1, exp: "1 kWh = 3.6 x 10^6 J (3.6 MJ)." },
-            { q: "28. Ideal machine ke liye efficiency kya hoti hai?", options: ["Output < Input", "Output = Input", "Output > Input", "Zero"], ans: 1, exp: "Ideal machine mein output aur input barabar hote hain." },
-            { q: "29. Kinetic Energy kis ke khilaf kiya gaya work hai?", options: ["Gravity", "Frictional force", "Tension", "Spring force"], ans: 1, exp: "K.E. work done against friction hoti hai." },
-            { q: "30. Potential Energy kis ke khilaf kiya gaya work hai?", options: ["Friction", "Gravity", "Drag force", "Magnetic force"], ans: 1, exp: "P.E. gravity ke khilaf work done hai." },
-            { q: "31. Earth ki surface se escape velocity ki value kitni hai?", options: ["9.8 km/s", "11.2 km/s", "3.0 x 10^8 m/s", "5.2 km/s"], ans: 1, exp: "Escape velocity from Earth 11.2 km/s hai." },
-            { q: "32. Moon se escape velocity ki value kitni hai?", options: ["11.2 km/s", "2.3 km/s", "5.0 km/s", "9.8 km/s"], ans: 1, exp: "Moon ki escape velocity 2.3 km/s hai." },
-            { q: "33. In mein se konsa non-renewable energy source hai?", options: ["Solar energy", "Wind energy", "Coal and Oil", "Geothermal energy"], ans: 2, exp: "Coal, oil aur gas non-renewable sources hain." },
-            { q: "34. Gravitational, Electric, aur Magnetic fields kaise fields hain?", options: ["Non-conservative", "Conservative", "Frictional", "Random"], ans: 1, exp: "Yeh sab conservative fields hain." },
-            { q: "35. Jab body free fall karti hai, toh uski total mechanical energy kaisi rehti hai?", options: ["Khatam ho jati hai", "Constant rehti hai", "Increase hoti hai", "Fluctuate karti hai"], ans: 1, exp: "Conservation of mechanical energy ki wajah se total energy constant rehti hai." },
-            { q: "36. Electron jab nucleus ke gird circle mein revolve karta hai, toh uska work done kya hota hai?", options: ["Maximum", "Positive", "Zero", "Negative"], ans: 2, exp: "Centripetal force ke sath displacement perpendicular hone ki wajah se work zero hota hai." },
-            { q: "37. Agar velocity half ho jaye, toh kinetic energy par kya asar padega?", options: ["Half ho jayegi", "One-fourth ho jayegi", "Double ho jayegi", "Same rahegi"], ans: 1, exp: "K.E. = 1/2 m(v/2)^2, yani 1/4th ho jayegi." },
-            { q: "38. Centripetal force kabhi bhi kya nahi kar sakti?", options: ["Acceleration", "Work", "Velocity change", "Direction change"], ans: 1, exp: "Centripetal force zero work karti hai." },
-            { q: "39. Work ki dimension kiske similar hoti hai?", options: ["Power", "Torque", "Momentum", "Pressure"], ans: 1, exp: "Work aur torque dono ki dimensions [ML^2 T^-2] hain." },
-            { q: "40. Solar cells kis material se banaye jate hain?", options: ["Copper", "Silicon", "Iron", "Aluminum"], ans: 1, exp: "Solar cells thin silicon cells se bante hain." },
+            { q: "11. Kisi dataset ki average nikalne ko kya kehte hain?", options: ["Mode", "Median", "Mean", "Range"], ans: 2, exp: "Mean average hoti hai." },
+            { q: "12. Outliers ki mojoodgi mein konsi metric sab se behtar hai?", options: ["Mean", "Median", "Mode", "Variance"], ans: 1, exp: "Median outliers se mutasir nahi hota." },
+            { q: "13. Jo value dataset mein sab se zyada baar aaye, use kya kehte hain?", options: ["Mean", "Median", "Mode", "Standard Deviation"], ans: 2, exp: "Mode most frequent value hai." },
+            { q: "14. Standard Deviation kya measure karta hai?", options: ["Data ki average", "Data ka spread mean ke ird-gird", "Maximum value", "Total sum"], ans: 1, exp: "Yeh spread ko measure karta hai." },
+            { q: "15. Agar do variables ek sath increase hon, toh unki correlation kya hogi?", options: ["Negative", "Zero", "Positive", "Neutral"], ans: 2, exp: "Sath increase hona positive correlation hai." },
+            { q: "16. Ek fair coin ko toss karne par 'Heads' aane ki probability kya hai?", options: ["1.0", "0.5", "0.25", "0.0"], ans: 1, exp: "Total 2 outcomes hain, so 1/2 = 0.5." },
+            { q: "17. Covariance aur Correlation mein main farq kya hai?", options: ["Dono same hain", "Covariance limit mein hoti hai", "Correlation standardized hoti hai (-1 to 1)", "Covariance hamesha positive hoti hai"], ans: 2, exp: "Correlation standardized hone ki wajah se compare karna asaan hoti hai." },
+            { q: "18. Normal Distribution (Bell Curve) mein ~68% data kahan hota hai?", options: ["1 Standard Deviation mein", "2 Standard Deviations mein", "3 Standard Deviations mein", "Mean ke bahar"], ans: 0, exp: "68% data 1 std dev ke andar hota hai." },
+            { q: "19. Variance ki calculation mein hum differences ko square kyu karte hain?", options: ["Calculation asaan karne ke liye", "Negative values ko positive karne ke liye", "Outliers chhupane ke liye", "Size kam karne ke liye"], ans: 1, exp: "Positive aur negative ko cancel hone se rokne ke liye." },
+            { q: "20. Descriptive statistics ka asal maqsad kya hai?", options: ["Future predict karna", "Past data ko summarize karna", "ML model train karna", "Data generate karna"], ans: 1, exp: "Yeh mojooda data ko describe karti hai." },
 
-            // Additional Core Physics Concepts (Measurements, Vectors & Equilibrium)
-            { q: "41. Vernier Caliper ka least count kitna hota hai?", options: ["0.1 cm", "0.01 cm", "0.001 cm", "1 cm"], ans: 1, exp: "Vernier caliper ka least count 0.01 cm ya 0.1 mm hota hai." },
-            { q: "42. Screw Gauge ka least count kitna hota hai?", options: ["0.1 cm", "0.01 cm", "0.001 cm", "0.0001 cm"], ans: 2, exp: "Screw gauge ka least count 0.001 cm ya 0.01 mm hota hai." },
-            { q: "43. Equilibrium ki pehli condition (First condition of equilibrium) kya hai?", options: ["Sum of all torques is zero", "Sum of all forces is zero", "Velocity is maximum", "Acceleration is maximum"], ans: 1, exp: "First condition of equilibrium kehti hai ke net force zero ($\Sigma F = 0$) honi chahiye." },
-            { q: "44. Equilibrium ki dusri condition (Second condition) kis se mutaliq hai?", options: ["Forces", "Torques", "Mass", "Velocity"], ans: 1, exp: "Second condition net torque zero ($\Sigma \tau = 0$) hone par mabni hai." },
-            { q: "45. Scalar product (Dot product) do vectors ka kya deta hai?", options: ["Scalar quantity", "Vector quantity", "Tensor", "Null vector"], ans: 0, exp: "Dot product hamesha ek scalar quantity deta hai." },
-            { q: "46. Vector product (Cross product) do vectors ka kya deta hai?", options: ["Scalar quantity", "Vector quantity", "Zero", "Constant"], ans: 1, exp: "Cross product hamesha ek vector quantity deta hai." },
-            { q: "47. Agar do vectors parallel hon, toh unka cross product kya hoga?", options: ["Maximum", "Zero", "One", "Negative"], ans: 1, exp: "Parallel vectors mein sin(0) = 0 hota hai, isliye cross product zero hota hai." },
-            { q: "48. Agar do vectors perpendicular hon, toh unka dot product kya hoga?", options: ["Maximum", "Zero", "One", "Minimum"], ans: 1, exp: "Perpendicular vectors mein cos(90) = 0 hota hai." },
-            { q: "49. 1 Radian kitne degrees ke barabar hota hai?", options: ["57.3 degrees", "90 degrees", "180 degrees", "360 degrees"], ans: 0, exp: "1 radian approximately 57.3 degrees ke equal hota hai." },
-            { q: "50. Ek complete circle (1 revolution) mein kitneradians hote hain?", options: ["$\pi$ radian", "$2\pi$ radian", "$3\pi$ radian", "$4\pi$ radian"], ans: 1, exp: "1 revolution = $2\pi$ radians." },
-            { q: "51. Angular velocity ka SI unit kya hai?", options: ["rad", "rad/s", "rad/s^2", "m/s"], ans: 1, exp: "Angular velocity ($\omega$) ka unit rad/s hai." },
-            { q: "52. Angular acceleration ka unit kya hai?", options: ["rad/s", "rad/s^2", "m/s^2", "N.m"], ans: 1, exp: "Angular acceleration ($\alpha$) ka unit rad/s^2 hai." },
-            { q: "53. Linear velocity aur angular velocity mein kya relation hai?", options: ["$v = \omega / r$", "$v = r \omega$", "$v = r / \omega$", "$v = \omega^2 r$"], ans: 1, exp: "Linear aur angular velocity ka relation $v = r\omega$ hai." },
-            { q: "54. Centripetal force ka formula kya hai?", options: ["$F = mv$", "$F = mv^2 / r$", "$F = m \omega r^2$", "$F = m^2v / r$"], ans: 1, exp: "Centripetal force $F = mv^2/r$ hoti hai." },
-            { q: "55. Moment of inertia (I) ka formula kya hai?", options: ["$mr$", "$mr^2$", "$m^2r$", "$1/2 mr^2$"], ans: 1, exp: "Moment of inertia $I = mr^2$ hota hai." },
-            { q: "56. Angular momentum ($L$) kiske barabar hota hai?", options: ["$mvr$", "$I\omega$", "Dono $mvr$ aur $I\omega$", "Sirf $mv$"], ans: 2, exp: "Angular momentum $L = r \times p = I\omega$ dono se represent hota hai." },
-            { q: "57. Law of conservation of angular momentum kehta hai ke agar external torque zero ho, toh kya constant rahega?", options: ["Linear momentum", "Angular momentum", "Kinetic energy", "Velocity"], ans: 1, exp: "External torque zero hone par angular momentum constant rehta hai." },
-            { q: "58. Simple pendulum ka time period kis formula se diya jata hai?", options: ["$T = 2\pi\sqrt{g/l}$", "$T = 2\pi\sqrt{l/g}$", "$T = \pi\sqrt{l/g}$", "$T = 2\pi l/g$"], ans: 1, exp: "Simple pendulum ka time period $T = 2\pi\sqrt{l/g}$ hota hai." },
-            { q: "59. Simple pendulum ka time period kis par depend nahi karta?", options: ["Length of pendulum", "Acceleration due to gravity", "Mass of the bob", "Place"], ans: 2, exp: "Time period bob ke mass par independent hota hai." },
-            { q: "60. Damped oscillations mein amplitude waqt ke sath sath kya hota hai?", options: ["Increase hota hai", "Constant rehta hai", "Smaller and smaller hota jata hai", "Zero ho jata hai foran"], ans: 2, exp: "Damped oscillations mein amplitude time ke sath kam hota jata hai." }
+            { q: "21. NumPy library mainly kis cheez ke liye use hoti hai?", options: ["Web scraping", "Numerical computing aur arrays", "Database management", "Frontend design"], ans: 1, exp: "NumPy arrays math operations ke liye hai." },
+            { q: "22. Pandas mein CSV file read karne ka function kaunsa hai?", options: ["pd.read_file()", "pd.open_csv()", "pd.read_csv()", "pd.load_csv()"], ans: 2, exp: "read_csv() standard function hai." },
+            { q: "23. Dataframe ki rows aur columns ki tadad dekhne ke liye konsa attribute use hota hai?", options: ["df.size()", "df.shape", "df.length", "df.count"], ans: 1, exp: "df.shape ek tuple return karta hai." },
+            { q: "24. Pandas mein missing values ko handle karne ke liye kya use hota hai?", options: ["df.dropna()", "df.fill_null()", "df.fillna()", "df.replace_na()"], ans: 2, exp: "fillna() values replace karta hai." },
+            { q: "25. NumPy mein 'Broadcasting' ka kya matlab hai?", options: ["Internet par bhejna", "Alag shapes ke arrays par math operations", "List mein convert karna", "Data delete karna"], ans: 1, exp: "Yeh chotay arrays ko stretch karta hai." },
+            { q: "26. Feature Engineering ka kya maqsad hai?", options: ["Naye features banana", "Data delete karna", "Server setup karna", "Code format karna"], ans: 0, exp: "Model ke liye behtar inputs banana." },
+            { q: "27. Pandas DataFrame mein groupby ka maqsad?", options: ["df.group()", "SQL ke GROUP BY jesa kaam", "df.aggregate()", "df.cluster()"], ans: 1, exp: "Groups banane ke liye use hota hai." },
+            { q: "28. Categorical variables ko numbers mein badalne ki technique?", options: ["Normalization", "Standardization", "One-Hot Encoding", "PCA"], ans: 2, exp: "Har category ka binary column banta hai." },
+            { q: "29. NumPy Python lists se fast kyu hai?", options: ["C language aur Vectorization", "Cloud par chalti hai", "Datatypes nahi hote", "List zyada fast hai"], ans: 0, exp: "C-level operations isko fast banate hain." },
+            { q: "30. Data Preprocessing ka pehla qadam?", options: ["Model training", "Data visualization", "Data Cleaning", "Deployment"], ans: 2, exp: "Missing values handle karna pehla qadam hai." },
+
+            { q: "31. Python mein basic plotting library kaunsi hai?", options: ["Keras", "Matplotlib", "TensorFlow", "Scikit-learn"], ans: 1, exp: "Matplotlib foundational library hai." },
+            { q: "32. Do numerical variables ka relationship dekhne ke liye best plot?", options: ["Pie Chart", "Bar Chart", "Scatter Plot", "Histogram"], ans: 2, exp: "Scatter plot trend dikhata hai." },
+            { q: "33. Seaborn library kis par base karti hai?", options: ["Pandas", "Matplotlib", "Plotly", "Bokeh"], ans: 1, exp: "Seaborn Matplotlib par bani hai." },
+            { q: "34. Histogram ka primary use kya hai?", options: ["Categories compare karna", "Frequency/Distribution dekhna", "3D plotting", "Time series"], ans: 1, exp: "Data bins mein frequency dikhata hai." },
+            { q: "35. EDA (Exploratory Data Analysis) ka main maqsad?", options: ["Model deploy karna", "Data ke patterns samajhna", "Database banana", "Client ko report bhejna"], ans: 1, exp: "Data ki insights lena." },
+            { q: "36. Correlation matrix visualize karne ke liye plot?", options: ["sns.pairplot", "sns.heatmap", "sns.boxplot", "sns.violinplot"], ans: 1, exp: "Heatmap colors se matrix dikhata hai." },
+            { q: "37. Business Dashboard ka sab se eham function?", options: ["Complex code dikhana", "KPIs ko visual format mein track karna", "Data encrypt karna", "Email bhejha"], ans: 1, exp: "KPIs track karne ke liye." },
+            { q: "38. Matplotlib mein subplots banane ke liye?", options: ["plt.multiplot", "plt.subplots", "plt.grid", "plt.figure"], ans: 1, exp: "Multiple grids ke liye use hota hai." },
+            { q: "39. Outliers detect karne ke liye konsa visual tool behtar hai?", options: ["Line chart", "Boxplot", "Pie chart", "Bar chart"], ans: 1, exp: "Boxplot extremes aur quartiles dikhata hai." },
+            { q: "40. 'Business Storytelling' ka maqsad?", options: ["Zyada colors use karna", "Actionable insights aasaan zaban mein dena", "Sirf math dikhana", "3D charts banana"], ans: 1, exp: "Data se narrative create karna." },
+
+            { q: "41. SQL ka full form kya hai?", options: ["Simple Query Language", "Structured Query Language", "Standard Question Language", "Sequential Query Language"], ans: 1, exp: "Relational DBs ki standard language hai." },
+            { q: "42. Sab columns ka data nikalne ke liye query?", options: ["SELECT ALL", "SELECT *", "SHOW *", "GET ALL"], ans: 1, exp: "* ka matlab all columns hai." },
+            { q: "43. 'Primary Key' ki khasiyat kya hai?", options: ["Hamesha text hoti hai", "Unique aur NOT NULL", "Sirf numbers hote hain", "Duplicate ho sakti hai"], ans: 1, exp: "Unique row identifier hai." },
+            { q: "44. Jo records dono tables mein match karein?", options: ["LEFT JOIN", "RIGHT JOIN", "FULL OUTER JOIN", "INNER JOIN"], ans: 3, exp: "INNER JOIN matching records lata hai." },
+            { q: "45. 'WHERE' clause ka kya kaam hai?", options: ["Data sort karna", "Condition filter karna", "Columns group karna", "Naya column banana"], ans: 1, exp: "Data lane se pehle filtering karta hai." },
+            { q: "46. In mein se konsa Aggregate Function nahi hai?", options: ["SUM()", "COUNT()", "LENGTH()", "AVG()"], ans: 2, exp: "LENGTH() aggregate function nahi hai." },
+            { q: "47. Python ko SQLite se connect karne ke liye library?", options: ["sqlite3", "pyodbc", "sqlalchemy", "psycopg2"], ans: 0, exp: "Built-in sqlite3 use hoti hai." },
+            { q: "48. WHERE aur HAVING clause mein difference?", options: ["Dono same hain", "WHERE grouping se pehle, HAVING baad mein", "HAVING grouping se pehle lagta hai", "WHERE sirf text par lagta hai"], ans: 1, exp: "HAVING aggregate functions ke sath use hota hai." },
+            { q: "49. Result descending order mein sort karne ke liye?", options: ["ORDER BY col_name DESC", "SORT BY col_name DOWN", "ORDER DESC col_name", "GROUP BY col_name DESC"], ans: 0, exp: "ORDER BY ke sath DESC use hota hai." },
+            { q: "50. Foreign Key ka maqsad kya hota hai?", options: ["Table delete karna", "Do tables mein relationship banana", "Duplicate values rokna", "Data encrypt karna"], ans: 1, exp: "Tables ko link karti hai." },
+
+            { q: "51. Output label (target) majood ho toh konsi learning hai?", options: ["Unsupervised", "Supervised", "Reinforcement", "Semi-supervised"], ans: 1, exp: "Labeled data Supervised learning hai." },
+            { q: "52. Ghar ki qeemat (continuous value) predict karna?", options: ["Classification", "Clustering", "Regression", "Dimensionality Reduction"], ans: 2, exp: "Continuous variables Regression hoti hai." },
+            { q: "53. Spam ya Not Spam predict karna?", options: ["Classification", "Regression", "Clustering", "Association"], ans: 0, exp: "Categorical prediction Classification hai." },
+            { q: "54. Model evaluate karne ke liye data division?", options: ["100% Training", "Train/Test split", "Sirf Test", "Delete kar ke naya data lana"], ans: 1, exp: "Generalization check karne ke liye." },
+            { q: "55. Overfitting kab hoti hai?", options: ["Model dono par bura ho", "Model training rat le aur naye data par fail ho", "Model train na ho", "Data kam ho"], ans: 1, exp: "Model noise ko bhi learn kar leta hai." },
+            { q: "56. Konsa Classification metric nahi hai?", options: ["Accuracy", "F1-Score", "Mean Squared Error (MSE)", "Precision"], ans: 2, exp: "MSE Regression metric hai." },
+            { q: "57. Scikit-learn mein model train karne ka method?", options: ["model.train()", "model.fit()", "model.predict()", "model.evaluate()"], ans: 1, exp: "fit(X, y) training method hai." },
+            { q: "58. K-Means konsi Machine Learning ka algorithm hai?", options: ["Supervised", "Classification", "Unsupervised Clustering", "Reinforcement"], ans: 2, exp: "Unlabeled data ko clusters mein bant'ta hai." },
+            { q: "59. Model test data par prediction ke liye kya use karte hain?", options: ["model.fit()", "model.train()", "model.predict()", "model.score()"], ans: 2, exp: "predict() se naye data par predictions li jati hain." },
+            { q: "60. Confusion Matrix kis liye banaya jata hai?", options: ["Regression Models", "Clustering Algorithms", "Classification Models", "Data Preprocessing"], ans: 2, exp: "True/False positives dikhane ke liye." }
         ];
 
         let isExamStarted = false;
         let isSubmitted = false; 
-        let warningCount = 0;
-        let lastWarningTime = 0;
-        let warningLogs = []; 
-        let submissionType = "Manual (Student Submitted)";
 
         function startExam() {
-            // Validation: Ensure Name and Roll Number are entered
             const studentName = document.getElementById('student_name').value;
             const rollNo = document.getElementById('roll_number').value;
             
             if (studentName.trim() === "" || rollNo.trim() === "") {
-                alert("⚠️ Exam shuru karne se pehle apna Name aur Roll Number zaroor likhein!");
+                alert("⚠️ Please enter your Name and Roll Number!");
                 return;
             }
 
-            // Hide Instructions, Show Quiz Interface
             document.getElementById('instructions-screen').style.display = 'none';
             document.getElementById('quiz-main-section').style.display = 'block';
             document.getElementById('video-container').style.display = 'block';
@@ -203,7 +174,7 @@
             isExamStarted = true;
             loadQuiz();
             startTimer();
-            startSecurityFeatures();
+            setTimeout(initCamera, 100);
         }
 
         function loadQuiz() {
@@ -224,13 +195,8 @@
         function submitQuiz(typeOfSubmission) {
             if (isSubmitted || !isExamStarted) return;
             isSubmitted = true;
-            submissionType = typeOfSubmission; 
             
             clearInterval(timerInterval); 
-            if(aiInterval) clearInterval(aiInterval);
-
-            // Browser mein save kar dein taake student dubara refresh kar ke test na de sake
-            localStorage.setItem("exam_submitted", "true");
 
             let score = 0, wrong = 0, unattempted = 0, total = quizData.length;
 
@@ -250,128 +216,36 @@
             let percentage = ((score / total) * 100).toFixed(2);
             let status = percentage >= 50 ? "<span style='color:#27ae60;'><b>PASSED</b></span>" : "<span style='color:#c0392b;'><b>FAILED</b></span>";
             
-            let logHTML = warningLogs.length > 0 ? `<ul>${warningLogs.map(log => `<li>${log}</li>`).join('')}</ul>` : `<span style="color:#27ae60; font-weight:bold;">No cheating detected. Excellent!</span>`;
-
             const reportDiv = document.getElementById('result-report');
             reportDiv.style.display = "block";
-            reportDiv.innerHTML = `<h2>📊 Detailed Final Report</h2><div style="display:flex; justify-content:space-between; flex-wrap:wrap;"><div style="flex:1; min-width: 250px;"><p><strong>Total Questions:</strong> ${total}</p><p style="color: #27ae60;"><strong>✅ Correct:</strong> ${score}</p><p style="color: #e74c3c;"><strong>❌ Wrong:</strong> ${wrong}</p><p style="color: #f39c12;"><strong>⚠️ Unattempted:</strong> ${unattempted}</p></div><div style="flex:1; min-width: 250px; text-align:right;"><p><strong>Score:</strong> ${percentage}%</p><p><strong>Result:</strong> ${status}</p><p><strong>Submitted By:</strong> <u>${submissionType}</u></p></div></div><div class="log-box"><strong>⚠️ Security Strikes:</strong><br>${logHTML}</div>`;
+            reportDiv.innerHTML = `<h2>📊 Detailed Final Report</h2><div style="display:flex; justify-content:space-between; flex-wrap:wrap;"><div style="flex:1; min-width: 250px;"><p><strong>Total Questions:</strong> ${total}</p><p style="color: #27ae60;"><strong>✅ Correct:</strong> ${score}</p><p style="color: #e74c3c;"><strong>❌ Wrong:</strong> ${wrong}</p><p style="color: #f39c12;"><strong>⚠️ Unattempted:</strong> ${unattempted}</p></div><div style="flex:1; min-width: 250px; text-align:right;"><p><strong>Score:</strong> ${percentage}%</p><p><strong>Result:</strong> ${status}</p><p><strong>Submitted By:</strong> <u>${typeOfSubmission}</u></p></div></div>`;
             window.scrollTo({ top: 0, behavior: 'smooth' });
             
-            if (mediaStream) mediaStream.getTracks().forEach(track => track.stop());
-            const canvas = document.getElementById('ai-canvas');
-            if (canvas) { canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height); }
-
-            // ==========================================
-            // BACKEND API FETCH - Data Bhejne Ka Code
-            // ==========================================
-            const studentData = {
-                name: document.getElementById('student_name').value,
-                roll_number: document.getElementById('roll_number').value,
-                score: score,
-                total_questions: total,
-                percentage: parseFloat(percentage),
-                status: status.includes("PASSED") ? "Passed" : "Failed",
-                submission_type: submissionType,
-                cheating_logs: warningLogs.length > 0 ? warningLogs.join(" | ") : "Clean"
-            };
-
-            const API_URL = "https://your-api-url.com/submit-exam"; 
-
-            fetch(API_URL, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(studentData)
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data && data.status === "error") {
-                    alert("⚠️ " + data.message); 
-                } else {
-                    console.log("Result saved successfully to the database!");
-                }
-            })
-            .catch(error => {
-                console.error("Error saving result:", error);
-            });
+            if (window.mediaStream) window.mediaStream.getTracks().forEach(track => track.stop());
         }
 
-        let mediaStream = null; let aiModel = null; let aiInterval;
-
-        function triggerWarning(reason) {
-            if (isSubmitted || !isExamStarted) return;
-            let now = Date.now();
-            if (now - lastWarningTime < 4000) return; 
-            lastWarningTime = now;
-            warningCount++;
-            let timestamp = new Date().toLocaleTimeString();
-            warningLogs.push(`[${timestamp}] Strike ${warningCount}: ${reason}`);
-            document.getElementById('warnings').innerText = `Warnings: ${warningCount} / 3 (Auto-submit after 3 strikes)`;
-            if (warningCount >= 3) { alert(`🚨 Maximum strikes reached! Reason: ${reason}. Exam is Auto-Submitting.`); submitQuiz("System Auto-Submit (Cheating Limit Reached)"); } 
-            else { alert(`WARNING ${warningCount}: ${reason}`); }
-        }
-
-        async function startSecurityFeatures() {
+        async function initCamera() {
             try {
-                mediaStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                window.mediaStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
                 const videoElement = document.getElementById('webcam');
-                videoElement.srcObject = mediaStream;
-                aiModel = await cocoSsd.load();
-                document.getElementById('ai-status').innerText = "🟢 Visual AI Active";
-                document.getElementById('ai-status').style.background = "#27ae60";
-
-                const canvas = document.getElementById('ai-canvas');
-                const ctx = canvas.getContext('2d');
-                
-                // Audio Monitoring Setup
-                let audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                let analyser = audioContext.createAnalyser();
-                let microphone = audioContext.createMediaStreamSource(mediaStream);
-                microphone.connect(analyser);
-                analyser.fftSize = 256;
-                let dataArray = new Uint8Array(analyser.frequencyBinCount);
-
-                aiInterval = setInterval(async () => {
-                    if (isSubmitted || videoElement.readyState !== 4) return;
-                    
-                    // Audio Check
-                    analyser.getByteFrequencyData(dataArray);
-                    let sum = 0;
-                    for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
-                    if ((sum / dataArray.length) > 50) { triggerWarning("Loud talking or background noise detected!"); return; }
-
-                    canvas.width = videoElement.videoWidth; canvas.height = videoElement.videoHeight;
-                    const predictions = await aiModel.detect(videoElement);
-                    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-                    let persons = 0; let phoneDetected = false;
-                    predictions.forEach(pred => {
-                        ctx.beginPath(); ctx.rect(...pred.bbox); ctx.lineWidth = 4;
-                        if (pred.class === 'cell phone') { ctx.strokeStyle = '#e74c3c'; ctx.fillStyle = '#e74c3c'; phoneDetected = true; } 
-                        else if (pred.class === 'person') { ctx.strokeStyle = '#2ecc71'; ctx.fillStyle = '#2ecc71'; persons++; }
-                        ctx.stroke(); ctx.font = 'bold 16px Arial';
-                        ctx.fillText(`${pred.class}`, pred.bbox[0], pred.bbox[1] > 20 ? pred.bbox[1] - 5 : 20);
-                    });
-
-                    if (phoneDetected) { triggerWarning("Mobile Phone detected by AI in camera view."); } 
-                    else if (persons > 1) { triggerWarning("Multiple persons detected in camera frame."); } 
-                    else if (persons === 0) { triggerWarning("Candidate missing from the camera frame."); }
-                }, 1000); 
-            } catch (err) { alert("Camera/Mic access is required to start the exam. Please allow permissions."); }
+                videoElement.srcObject = window.mediaStream;
+            } catch (err) {
+                console.log("Camera access error:", err);
+            }
         }
 
-        // Only track tab switching and blur AFTER exam has started
-        document.addEventListener("visibilitychange", () => { 
-            if (document.hidden && isExamStarted && !isSubmitted) triggerWarning("Candidate switched the browser tab."); 
-        });
-        window.addEventListener("blur", () => { 
-            if (isExamStarted && !isSubmitted) triggerWarning("Focus Lost: Candidate looked away or clicked on another screen."); 
-        });
-
-        let timeLeft = 60 * 60; let timerInterval;
+        let timeLeft = 60 * 60; 
+        let timerInterval;
         function startTimer() {
             timerInterval = setInterval(() => {
-                if (timeLeft <= 0) { clearInterval(timerInterval); alert("⏰ Time is up!"); submitQuiz("System Auto-Submit (Time Limit)"); }
-                timeLeft--; let m = Math.floor(timeLeft / 60); let s = timeLeft % 60;
+                if (timeLeft <= 0) { 
+                    clearInterval(timerInterval); 
+                    alert("⏰ Time is up!"); 
+                    submitQuiz("System Auto-Submit (Time Limit)"); 
+                }
+                timeLeft--; 
+                let m = Math.floor(timeLeft / 60); 
+                let s = timeLeft % 60;
                 document.getElementById('timer').innerText = `${m}:${s < 10 ? '0' : ''}${s}`;
             }, 1000);
         }
